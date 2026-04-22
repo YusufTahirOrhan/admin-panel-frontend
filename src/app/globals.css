@@ -81,6 +81,30 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ── OptiMaxx Brand Tokens ─────────────────────────────────────────── */
+  /* Deep Navy — primary brand / panel backgrounds */
+  --brand-navy-50:  #eef1f8;
+  --brand-navy-100: #d4dbed;
+  --brand-navy-200: #a9b7db;
+  --brand-navy-300: #7e93c8;
+  --brand-navy-400: #536fb5;
+  --brand-navy-500: #2b4c9b;
+  --brand-navy-600: #1e3a80;
+  --brand-navy-700: #152b65;
+  --brand-navy-800: #0d1d4a;
+  --brand-navy-900: #060e2f;
+
+  /* Warm Gold — accents, highlights, CTAs */
+  --brand-gold-300: #f6d87a;
+  --brand-gold-400: #f0c842;
+  --brand-gold-500: #d4a00e;
+  --brand-gold-600: #b8860b;
+
+  /* Teal — secondary accent, focus rings */
+  --brand-teal-400: #2dd4bf;
+  --brand-teal-500: #14b8a6;
+  --brand-teal-600: #0d9488;
 }
 
 .dark {
