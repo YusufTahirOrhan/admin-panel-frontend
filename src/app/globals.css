@@ -73,14 +73,39 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* ── Sidebar: Brand Navy Dark Theme ── */
+  --sidebar: var(--brand-navy-900);
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: var(--brand-teal-500);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--brand-navy-800);
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: var(--brand-teal-400);
+
+  /* ── OptiMaxx Brand Tokens ─────────────────────────────────────────── */
+  /* Deep Navy — primary brand / panel backgrounds */
+  --brand-navy-50:  #eef1f8;
+  --brand-navy-100: #d4dbed;
+  --brand-navy-200: #a9b7db;
+  --brand-navy-300: #7e93c8;
+  --brand-navy-400: #536fb5;
+  --brand-navy-500: #2b4c9b;
+  --brand-navy-600: #1e3a80;
+  --brand-navy-700: #152b65;
+  --brand-navy-800: #0d1d4a;
+  --brand-navy-900: #060e2f;
+
+  /* Warm Gold — accents, highlights, CTAs */
+  --brand-gold-300: #f6d87a;
+  --brand-gold-400: #f0c842;
+  --brand-gold-500: #d4a00e;
+  --brand-gold-600: #b8860b;
+
+  /* Teal — secondary accent, focus rings */
+  --brand-teal-400: #2dd4bf;
+  --brand-teal-500: #14b8a6;
+  --brand-teal-600: #0d9488;
 }
 
 .dark {
@@ -127,4 +152,13 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ── Sidebar scrollbar styling ── */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

@@ -1,0 +1,26 @@
+-- OptiMaxx Frontend: Sohbet Geçmişi / Nerede Kaldık? --
+
+1. **Scaffolding ve Kurulumlar:**
+   - Next.js (App Router, TypeScript, Tailwind CSS v4) projesi oluşturuldu.
+   - UI kütüphanesi olarak `shadcn/ui` (varsayılan CSS değişkenleriyle) entegre edildi.
+   - Gerekli tüm paketler kuruldu: `zustand`, `@tanstack/react-query`, `axios`, `react-hook-form`, `zod`, `@hookform/resolvers`.
+   - Varsayılan font Inter olarak ayarlandı ve `RootLayout` içerisinde `QueryProvider` (React Query) tanımlandı.
+
+2. **Klasör ve Rota Yapısı (App Router):**
+   - Sayfa düzeni portallere göre Route Group'lar halinde ayrıldı.
+   - `src/app/(public)`: Herkesin görebileceği mağaza ve katalog ürünleri.
+   - `src/app/(admin)`: Sadece `OWNER` ve `ADMIN` yetkisine sahip kullanıcılar.
+   - `src/app/(sales)`: `STAFF`, `OWNER` ve `ADMIN` yetkilileri için POS ekranı.
+   - `src/app/(auth)`: Giriş yapma ekranı.
+
+3. **Kimlik Doğrulama (Auth) ve Middleware Mimarisi [ÖNEMLİ]:**
+   - **XSS ve Güvenlik:** `accessToken` bellek içinde (Zustand) saklanmaktadır. Backend iletişimi Next.js Route Handlers (`/api/auth/*`) üzerinden vekil (proxy) sunularak işletilmiştir.
+   - **Cookie Yönetimi:** `login` ve `refresh` işlemlerinde Next.js sunucusu, JWT token'larını `HttpOnly` Cookie olarak kaydeder (`accessToken` ve `refreshToken`).
+   - **Axios Interceptor:** Client tarafında `src/lib/axios.ts` üzerinden yapılan dış isteklerde Zustand'dan okunan accessToken gönderilir. 401 hatası alınırsa, Axios kuyruğa alma (queue) işlemi yapar ve `/api/auth/refresh` route'unu çağırıp token'ları güncelleyerek isteği tekrarlar.
+   - **Next.js Edge Middleware:** Sayfa yüklenmeden önce çalışır. `request.cookies` üzerinden `accessToken` veya `refreshToken` okunur. `jose` kütüphanesi kullanılmadan, `atob` fonksiyonu ile base64 JWT payload decode edilerek rolleri doğrulanır. Rotaya uygun yetkisi olmayan kullanıcılar `/login` ya da uygun dashboard ekranlarına yönlendirilir.
+
+4. **Git Durumu:**
+   - Proje ana dizininde tüm bu temel kurgu `feat/frontend-foundation` branch'i üzerinden GitHub'a pushlanmıştır.
+   - Tüm dosya ve fonksiyon isimlendirmeleri \%100 İngilizce yapılmış, sadece kullanıcıların göreceği metinler Türkçe olarak eklenmiştir.
+
+*Not: Bir sonraki aşamada ilgili sayfa bileşenleri ve form tasarımlarına geçilecektir.*
