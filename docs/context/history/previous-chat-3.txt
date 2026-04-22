@@ -1,0 +1,21 @@
+-- OptiMaxx Frontend: Sohbet Geçmişi 3 / Admin ve Sales Layout Geliştirmeleri --
+
+1. **Dashboard ve POS Layout Mimarisi:**
+   - **Admin Paneli (`/admin`)**: shadcn/ui v4 `Sidebar` primitives kullanılarak collapsible (daralabilir) bir yan menü yapısı oluşturuldu. `SidebarProvider` ve `SidebarInset` bileşenleriyle mobil uyumlu (Sheet/Drawer) ve klavye kısayollu (Ctrl+B) bir altyapı kuruldu.
+   - **Sales POS (`/sales`)**: Satış operasyonlarının ekran alanını maksimize etmek için sidebar’sız, yatay tab (sekme) navigasyonlu bir layout tasarlandı. Sticky header yapısı içinde `LiveClock` ve kompakt navigasyon öğeleri yerleştirildi.
+   - Tüm portal tasarımlarında OptiMaxx brand renkleri (navy-900 sidebar, teal aksanlar) `globals.css` üzerinden eşlendi.
+
+2. **shadcn/ui v4 ve Base-UI Adaptasyonu:**
+   - shadcn/ui v4'ün `@base-ui/react` kütüphanesine geçişiyle birlikte gelen API değişiklikleri yönetildi.
+   - **Tooltip/Dropdown**: `asChild` yerine direkt element kullanımı ve `delayDuration` yerine `delay` prop'u gibi v4'e özgü syntax düzeltmeleri yapıldı.
+   - `src/components/ui` altına 12 yeni UI bileşeni eklendi.
+
+3. **Global Bileşenler ve State:**
+   - `AppLogo`, `UserMenu`, `NotificationBell` ve URL tabanlı otomatik `BreadcrumbNav` bileşenleri `src/components/layout` altında merkezileştirildi.
+   - `auth-store.ts` (Zustand) geliştirilerek role-based (RBAC) kontrol yetenekleri (`isOwner`, `isAdmin`, `hasRole`) ve kullanıcı profil yönetimi altyapısı güçlendirildi.
+
+4. **Klasör Yapısı ve Konfigürasyon:**
+   - Navigasyon verileri bileşenlerden soyutlanarak `_config` klasörleri altında (`admin-nav-config.ts`, `sales-nav-config.ts`) toplandı.
+   - Admin ve Sales portal sayfaları premium KPI kartları, mock satış listeleri ve sepet arayüzü ile zenginleştirildi.
+
+*Bir sonraki aşamada: Sales POS ekranındaki (Sepet ve Ürün Listesi) sahte veriler kaldırılarak React Query ve Zustand üzerinden gerçek backend API'lerine bağlanmalıdır.*
