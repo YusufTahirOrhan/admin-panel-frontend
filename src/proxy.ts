@@ -18,15 +18,42 @@ function parseJwt(token: string) {
 }
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const url = request.nextUrl.clone();
+  const { pathname } = url;
+  const host = request.headers.get('host') || '';
+
+  // Determine if requesting host starts with 'admin.'
+  const isAdminSubdomain = host.startsWith('admin.');
+
+  // 1. Subdomain rewriting and routing logic
+  if (isAdminSubdomain) {
+    // Rewrite root access on admin subdomain to login page
+    if (pathname === '/') {
+      url.pathname = '/login';
+      return NextResponse.rewrite(url);
+    }
+  } else {
+    // On the main domain, redirect admin, sales, or login paths to the admin subdomain
+    const adminRoutes = ['/login', '/admin', '/sales'];
+    const isProtectedPath = adminRoutes.some(
+      (route) => pathname === route || pathname.startsWith(route + '/')
+    );
+
+    if (isProtectedPath) {
+      const protocol = request.headers.get('x-forwarded-proto') || 'http';
+      const newHost = host.startsWith('admin.') ? host : `admin.${host}`;
+      const redirectUrl = `${protocol}://${newHost}${pathname}${url.search}`;
+      return NextResponse.redirect(new URL(redirectUrl));
+    }
+  }
+
+  // 2. Authentication and Authorization Guard
   const accessToken = request.cookies.get('accessToken')?.value;
   const refreshToken = request.cookies.get('refreshToken')?.value;
-
   const isAuthenticated = !!(accessToken || refreshToken);
 
   // If user is trying to access auth pages but is already authenticated
   if (isAuthenticated && pathname.startsWith('/login')) {
-    // We could parse the token to redirect them to the correct dashboard
     if (accessToken) {
       const payload = parseJwt(accessToken);
       if (payload?.role === 'STAFF') {
@@ -34,7 +61,6 @@ export function proxy(request: NextRequest) {
       }
       return NextResponse.redirect(new URL('/admin', request.url));
     }
-    // Default fallback if we only have refresh token
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 
@@ -65,5 +91,15 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/sales/:path*', '/login'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
+
