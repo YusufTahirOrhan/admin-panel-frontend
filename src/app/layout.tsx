@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/providers/query-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
-const fontInter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "OptiMaxx Management System",
@@ -22,7 +16,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${fontInter.variable} h-full antialiased font-sans`}
+      className="h-full antialiased font-sans"
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
@@ -34,3 +28,4 @@ export default function RootLayout({
     </html>
   );
 }
+
