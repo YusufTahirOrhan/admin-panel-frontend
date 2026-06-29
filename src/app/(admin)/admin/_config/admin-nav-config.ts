@@ -1,20 +1,16 @@
 import {
+  BarChart3,
+  FilePenLine,
   LayoutDashboard,
-  ShoppingCart,
   Package,
-  Users,
-  UserCog,
   Settings,
   ShieldCheck,
-  BarChart3,
+  ShoppingCart,
+  UserCog,
+  Users,
 } from "lucide-react";
 import type { NavGroup } from "@/lib/types/navigation";
 
-/**
- * Admin portal sidebar navigation configuration.
- * Groups are rendered as collapsible sections.
- * `roles` array determines which users can see each item.
- */
 export const adminNavConfig: NavGroup[] = [
   {
     title: "Ana Menü",
@@ -78,6 +74,13 @@ export const adminNavConfig: NavGroup[] = [
         label: "Ayarlar",
         href: "/admin/settings",
         icon: Settings,
+        roles: ["OWNER", "ADMIN"],
+      },
+      {
+        id: "site-editor",
+        label: "Site Düzenleme",
+        href: "/admin/site-editor",
+        icon: FilePenLine,
         roles: ["OWNER", "ADMIN"],
       },
     ],

@@ -1,15 +1,6 @@
-import {
-  ShoppingCart,
-  Wrench,
-  FileText,
-  Users,
-} from "lucide-react";
+import { FileText, ShoppingCart, Users, Wrench } from "lucide-react";
 import type { NavItem } from "@/lib/types/navigation";
 
-/**
- * Sales portal horizontal tab navigation configuration.
- * All staff-level users can access all sales tabs.
- */
 export const salesNavConfig: NavItem[] = [
   {
     id: "new-sale",
