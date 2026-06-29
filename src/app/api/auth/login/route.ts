@@ -5,11 +5,15 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const username = typeof body?.email === 'string' ? body.email : body?.username;
 
     const response = await fetch(`${BACKEND_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        username,
+        password: body?.password,
+      }),
     });
 
     if (!response.ok) {
@@ -18,7 +22,13 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
-    const { accessToken, refreshToken, user } = data;
+    const { accessToken, refreshToken, role } = data;
+    const user = {
+      id: '',
+      email: typeof body?.email === 'string' ? body.email : username,
+      name: username,
+      role,
+    };
 
     const res = NextResponse.json({ accessToken, user }, { status: 200 });
 
