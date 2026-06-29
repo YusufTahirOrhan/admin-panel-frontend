@@ -1,4 +1,5 @@
 import Image from "next/image";
+import BrandShowcase, { type BrandShowcaseItem } from "@/components/public/brand-showcase";
 import type { PageBlock, SitePage } from "@/lib/management-api";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,11 @@ const fallbackBlocks: PageBlock[] = [
       title: "OptiMaxx Optik",
       subtitle: "Göz sağlığınız, net görüş ve stiliniz için modern optik çözümler.",
       eyebrow: "Mahallenizin modern optik mağazası",
+      primaryButtonLabel: "",
+      primaryButtonHref: "",
+      secondaryButtonLabel: "Koleksiyonları İncele",
+      secondaryButtonHref: "#products",
+      highlights: ["Optik cam danışmanlığı", "Çerçeve seçimi", "Hızlı bakım"],
       imageUrl: "",
     },
   },
@@ -41,8 +47,57 @@ const fallbackBlocks: PageBlock[] = [
     },
   },
   {
-    type: "about",
+    type: "brandShowcase",
     order: 3,
+    enabled: true,
+    content: {
+      title: "Seçili Marka ve Ürünler",
+      subtitle: "Gözlük ve lens markalarını ayrı akışlarda keşfedin.",
+      eyewearItems: [
+        {
+          name: "Ray-Ban",
+          description: "Klasik güneş gözlüğü ve optik çerçeve modelleri.",
+          imageUrl: "",
+          url: "",
+        },
+        {
+          name: "Persol",
+          description: "El işçiliği detaylı premium çerçeveler.",
+          imageUrl: "",
+          url: "",
+        },
+        {
+          name: "Vogue Eyewear",
+          description: "Günlük kullanıma uygun modern ve renkli tasarımlar.",
+          imageUrl: "",
+          url: "",
+        },
+      ],
+      lensItems: [
+        {
+          name: "Acuvue",
+          description: "Günlük ve aylık kontakt lens seçenekleri.",
+          imageUrl: "",
+          url: "",
+        },
+        {
+          name: "Air Optix",
+          description: "Nefes alabilen kontakt lens teknolojileri.",
+          imageUrl: "",
+          url: "",
+        },
+        {
+          name: "Biofinity",
+          description: "Uzun süreli konfor için kontakt lens alternatifleri.",
+          imageUrl: "",
+          url: "",
+        },
+      ],
+    },
+  },
+  {
+    type: "about",
+    order: 4,
     enabled: true,
     content: {
       title: "Net görüş için sakin, özenli bir deneyim",
@@ -51,19 +106,35 @@ const fallbackBlocks: PageBlock[] = [
     },
   },
   {
+    type: "cta",
+    order: 5,
+    enabled: true,
+    content: {
+      title: "Size uygun camı birlikte seçelim",
+      subtitle: "Ekibimiz ihtiyaçlarınıza göre en doğru çözümü bulmanıza yardımcı olur.",
+      primaryButtonLabel: "Mağazaya Ulaş",
+      primaryButtonHref: "#contact",
+      secondaryButtonLabel: "Hizmetleri Gör",
+      secondaryButtonHref: "#services",
+      imageUrl: "",
+    },
+  },
+  {
     type: "hours",
-    order: 4,
+    order: 6,
     enabled: true,
     content: {
       title: "Çalışma Saatleri",
+      subtitle: "Mağaza ziyaretinizi planlamadan önce güncel saatleri kontrol edebilirsiniz.",
       weekdays: "09:00 - 19:00",
       saturday: "10:00 - 17:00",
       sunday: "Kapalı",
+      note: "Resmi tatil ve özel günlerde saatler değişebilir.",
     },
   },
   {
     type: "contact",
-    order: 5,
+    order: 7,
     enabled: true,
     content: {
       title: "Mağazamız",
@@ -71,6 +142,20 @@ const fallbackBlocks: PageBlock[] = [
       email: "contact@optimaxx.com",
       address: "Merkez Mahallesi, Optik Caddesi No: 1",
       mapUrl: "",
+    },
+  },
+  {
+    type: "socialLinks",
+    order: 8,
+    enabled: true,
+    content: {
+      title: "Bizi Takip Edin",
+      subtitle: "Yeni modeller, kampanyalar ve mağaza duyuruları için sosyal hesaplarımız.",
+      items: [
+        { label: "Instagram", url: "https://instagram.com/" },
+        { label: "Facebook", url: "https://facebook.com/" },
+        { label: "TikTok", url: "https://tiktok.com/" },
+      ],
     },
   },
 ];
@@ -96,6 +181,50 @@ function text(content: PageBlock["content"], key: string, fallback = "") {
 
 function asList(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+}
+
+function listOrFallback(value: unknown, fallback: string[]): string[] {
+  const list = asList(value);
+  return list.length ? list : fallback;
+}
+
+function asRecords(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null && !Array.isArray(item))
+    : [];
+}
+
+function asBrandItems(value: unknown): BrandShowcaseItem[] {
+  if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
+    return value.map((item) => ({ name: item }));
+  }
+
+  return asRecords(value)
+    .map((item) => ({
+      name: text(item, "name"),
+      description: text(item, "description"),
+      imageUrl: text(item, "imageUrl"),
+      url: text(item, "url"),
+    }))
+    .filter((item) => item.name);
+}
+
+function asSocialLinks(value: unknown) {
+  if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
+    return value
+      .map((item) => {
+        const [label, url = ""] = item.split("|");
+        return { label: label.trim(), url: url.trim() };
+      })
+      .filter((item) => item.label && item.url);
+  }
+
+  return asRecords(value)
+    .map((item) => ({
+      label: text(item, "label"),
+      url: text(item, "url"),
+    }))
+    .filter((item) => item.label && item.url);
 }
 
 function renderImage(src: string, className: string) {
@@ -134,7 +263,13 @@ function renderMap(src: string) {
 function renderBlock(block: PageBlock) {
   const content = block.content;
   switch (block.type) {
-    case "hero":
+    case "hero": {
+      const highlights = listOrFallback(content.highlights, ["Optik cam", "Çerçeve", "Bakım"]);
+      const primaryButtonLabel = text(content, "primaryButtonLabel");
+      const primaryButtonHref = text(content, "primaryButtonHref");
+      const secondaryButtonLabel = text(content, "secondaryButtonLabel", "Koleksiyonları İncele");
+      const secondaryButtonHref = text(content, "secondaryButtonHref", "#products");
+
       return (
         <section key={block.order} className="bg-slate-950 text-white">
           <div className="mx-auto grid min-h-[72vh] max-w-6xl content-center gap-10 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr]">
@@ -148,8 +283,28 @@ function renderBlock(block: PageBlock) {
               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
                 {text(content, "subtitle")}
               </p>
+              {(primaryButtonLabel || secondaryButtonLabel) && (
+                <div className="mt-8 flex flex-wrap gap-3">
+                  {primaryButtonLabel ? (
+                    <a
+                      href={primaryButtonHref || "#contact"}
+                      className="inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-slate-100"
+                    >
+                      {primaryButtonLabel}
+                    </a>
+                  ) : null}
+                  {secondaryButtonLabel ? (
+                    <a
+                      href={secondaryButtonHref || "#services"}
+                      className="inline-flex h-11 items-center justify-center rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                    >
+                      {secondaryButtonLabel}
+                    </a>
+                  ) : null}
+                </div>
+              )}
               <div className="mt-10 grid max-w-xl grid-cols-3 gap-3 text-center text-sm">
-                {["Optik cam", "Çerçeve", "Bakım"].map((label) => (
+                {highlights.slice(0, 3).map((label) => (
                   <div key={label} className="rounded-lg border border-white/10 bg-white/5 px-3 py-4">
                     <span className="font-semibold text-white">{label}</span>
                   </div>
@@ -164,6 +319,7 @@ function renderBlock(block: PageBlock) {
           </div>
         </section>
       );
+    }
     case "services":
       return (
         <section id="services" key={block.order} className="border-b bg-white px-6 py-16">
@@ -202,8 +358,17 @@ function renderBlock(block: PageBlock) {
           </div>
         </section>
       );
+    case "brandShowcase":
+      return (
+        <BrandShowcase
+          key={block.order}
+          title={text(content, "title", "Seçili Marka ve Ürünler")}
+          subtitle={text(content, "subtitle")}
+          eyewearItems={asBrandItems(content.eyewearItems)}
+          lensItems={asBrandItems(content.lensItems)}
+        />
+      );
     case "about":
-    case "cta":
       return (
         <section key={block.order} className="border-b bg-white px-6 py-16">
           <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-2">
@@ -219,20 +384,74 @@ function renderBlock(block: PageBlock) {
           </div>
         </section>
       );
+    case "cta": {
+      const primaryButtonLabel = text(content, "primaryButtonLabel", "Mağazaya Ulaş");
+      const primaryButtonHref = text(content, "primaryButtonHref", "#contact");
+      const secondaryButtonLabel = text(content, "secondaryButtonLabel", "Hizmetleri Gör");
+      const secondaryButtonHref = text(content, "secondaryButtonHref", "#services");
+
+      return (
+        <section key={block.order} className="border-b bg-slate-950 px-6 py-16 text-white">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
+            <div>
+              <h2 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">
+                {text(content, "title", "Size uygun camı birlikte seçelim")}
+              </h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
+                {text(content, "subtitle")}
+              </p>
+              {(primaryButtonLabel || secondaryButtonLabel) && (
+                <div className="mt-8 flex flex-wrap gap-3">
+                  {primaryButtonLabel ? (
+                    <a
+                      href={primaryButtonHref || "#contact"}
+                      className="inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-slate-100"
+                    >
+                      {primaryButtonLabel}
+                    </a>
+                  ) : null}
+                  {secondaryButtonLabel ? (
+                    <a
+                      href={secondaryButtonHref || "#services"}
+                      className="inline-flex h-11 items-center justify-center rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                    >
+                      {secondaryButtonLabel}
+                    </a>
+                  ) : null}
+                </div>
+              )}
+            </div>
+            {renderImage(text(content, "imageUrl"), "aspect-video w-full rounded-lg object-cover opacity-90 shadow-sm") ?? (
+              <div className="hidden aspect-video rounded-lg border border-white/10 bg-white/5 md:block" aria-hidden="true" />
+            )}
+          </div>
+        </section>
+      );
+    }
     case "hours":
       return (
-        <section key={block.order} className="border-b bg-slate-50 px-6 py-14">
+        <section id="hours" key={block.order} className="border-b bg-slate-50 px-6 py-14">
           <div className="mx-auto max-w-6xl">
-            <h2 className="text-3xl font-bold tracking-tight">{text(content, "title", "Çalışma Saatleri")}</h2>
-            <div className="mt-6 grid gap-3 md:grid-cols-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">{text(content, "title", "Çalışma Saatleri")}</h2>
+                <p className="mt-3 max-w-2xl text-slate-600">{text(content, "subtitle")}</p>
+              </div>
+              {text(content, "note") ? (
+                <p className="max-w-sm rounded-lg border bg-white px-4 py-3 text-sm leading-6 text-slate-500">
+                  {text(content, "note")}
+                </p>
+              ) : null}
+            </div>
+            <div className="mt-8 grid gap-3 md:grid-cols-3">
               {[
                 ["Hafta içi", text(content, "weekdays")],
                 ["Cumartesi", text(content, "saturday")],
                 ["Pazar", text(content, "sunday")],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-lg border bg-white p-5">
-                  <p className="text-sm text-slate-500">{label}</p>
-                  <p className="mt-1 text-lg font-semibold">{value}</p>
+                <div key={label} className="rounded-lg border bg-white p-5 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">{label}</p>
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">{value}</p>
                 </div>
               ))}
             </div>
@@ -261,6 +480,34 @@ function renderBlock(block: PageBlock) {
           </div>
         </section>
       );
+    case "socialLinks": {
+      const links = asSocialLinks(content.items);
+      if (links.length === 0) return null;
+
+      return (
+        <section key={block.order} className="border-b bg-white px-6 py-12">
+          <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">{text(content, "title", "Bizi Takip Edin")}</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{text(content, "subtitle")}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {links.map((item) => (
+                <a
+                  key={`${item.label}-${item.url}`}
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-950 hover:text-slate-950"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
     default:
       return null;
   }

@@ -162,3 +162,42 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes optimaxx-marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes optimaxx-marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.optimaxx-marquee-left {
+  animation: optimaxx-marquee-left 36s linear infinite;
+}
+
+.optimaxx-marquee-right {
+  animation: optimaxx-marquee-right 36s linear infinite;
+}
+
+.group:hover .optimaxx-marquee-left,
+.group:hover .optimaxx-marquee-right {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .optimaxx-marquee-left,
+  .optimaxx-marquee-right {
+    animation: none;
+    transform: none;
+  }
+}

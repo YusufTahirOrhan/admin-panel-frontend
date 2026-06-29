@@ -19,6 +19,12 @@ export default function PublicLayout({
             <a href="#products" className="transition-colors hover:text-slate-950">
               Ürünler
             </a>
+            <a href="#brands" className="transition-colors hover:text-slate-950">
+              Markalar
+            </a>
+            <a href="#hours" className="transition-colors hover:text-slate-950">
+              Saatler
+            </a>
             <a href="#contact" className="transition-colors hover:text-slate-950">
               İletişim
             </a>

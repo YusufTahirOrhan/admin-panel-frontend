@@ -21,14 +21,24 @@ import { Input } from "@/components/ui/input";
 import { ApiRecord, PageBlock, SitePage, apiGet, apiPost, apiPut, apiUpload } from "@/lib/management-api";
 import { cn } from "@/lib/utils";
 
-const blockTypes = ["hero", "services", "featuredProducts", "about", "contact", "hours", "cta"] as const;
+const blockTypes = [
+  "hero",
+  "services",
+  "featuredProducts",
+  "brandShowcase",
+  "about",
+  "contact",
+  "hours",
+  "cta",
+  "socialLinks",
+] as const;
 
 type BlockType = (typeof blockTypes)[number];
 
 type FieldConfig = {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "url" | "email";
+  type?: "text" | "textarea" | "url" | "email" | "list" | "linkList" | "brandList";
   placeholder?: string;
 };
 
@@ -36,10 +46,12 @@ const blockLabels: Record<BlockType, string> = {
   hero: "Hero",
   services: "Hizmetler",
   featuredProducts: "Öne Çıkan Ürünler",
+  brandShowcase: "Marka Vitrini",
   about: "Hakkımızda",
   contact: "İletişim",
   hours: "Çalışma Saatleri",
   cta: "Çağrı Alanı",
+  socialLinks: "Sosyal Medya",
 };
 
 const defaultContent: Record<BlockType, ApiRecord> = {
@@ -47,6 +59,11 @@ const defaultContent: Record<BlockType, ApiRecord> = {
     title: "OptiMaxx Optik",
     subtitle: "Göz sağlığınız ve stiliniz için modern optik çözümler.",
     eyebrow: "Optik mağazası",
+    primaryButtonLabel: "",
+    primaryButtonHref: "",
+    secondaryButtonLabel: "Koleksiyonları İncele",
+    secondaryButtonHref: "#products",
+    highlights: ["Optik cam danışmanlığı", "Çerçeve seçimi", "Hızlı bakım"],
     imageUrl: "",
   },
   services: {
@@ -58,6 +75,50 @@ const defaultContent: Record<BlockType, ApiRecord> = {
     title: "Öne Çıkan Ürünler",
     subtitle: "Sezonun dikkat çeken ürünleri ve cam seçenekleri.",
     items: ["Ray-Ban Aviator", "Progresif Cam", "Kontakt Lens"],
+  },
+  brandShowcase: {
+    title: "Seçili Marka ve Ürünler",
+    subtitle: "Gözlük ve lens markalarını ayrı akışlarda keşfedin.",
+    eyewearItems: [
+      {
+        name: "Ray-Ban",
+        description: "Klasik güneş gözlüğü ve optik çerçeve modelleri.",
+        imageUrl: "",
+        url: "",
+      },
+      {
+        name: "Persol",
+        description: "El işçiliği detaylı premium çerçeveler.",
+        imageUrl: "",
+        url: "",
+      },
+      {
+        name: "Vogue Eyewear",
+        description: "Günlük kullanıma uygun modern ve renkli tasarımlar.",
+        imageUrl: "",
+        url: "",
+      },
+    ],
+    lensItems: [
+      {
+        name: "Acuvue",
+        description: "Günlük ve aylık kontakt lens seçenekleri.",
+        imageUrl: "",
+        url: "",
+      },
+      {
+        name: "Air Optix",
+        description: "Nefes alabilen kontakt lens teknolojileri.",
+        imageUrl: "",
+        url: "",
+      },
+      {
+        name: "Biofinity",
+        description: "Uzun süreli konfor için kontakt lens alternatifleri.",
+        imageUrl: "",
+        url: "",
+      },
+    ],
   },
   about: {
     title: "Hakkımızda",
@@ -73,14 +134,29 @@ const defaultContent: Record<BlockType, ApiRecord> = {
   },
   hours: {
     title: "Çalışma Saatleri",
+    subtitle: "Mağaza ziyaretinizi planlamadan önce güncel saatleri kontrol edebilirsiniz.",
     weekdays: "09:00 - 19:00",
     saturday: "10:00 - 17:00",
     sunday: "Kapalı",
+    note: "Resmi tatil ve özel günlerde saatler değişebilir.",
   },
   cta: {
     title: "Size uygun camı birlikte seçelim",
     subtitle: "Ekibimiz ihtiyaçlarınıza göre en doğru çözümü bulmanıza yardımcı olur.",
+    primaryButtonLabel: "Mağazaya Ulaş",
+    primaryButtonHref: "#contact",
+    secondaryButtonLabel: "Hizmetleri Gör",
+    secondaryButtonHref: "#services",
     imageUrl: "",
+  },
+  socialLinks: {
+    title: "Bizi Takip Edin",
+    subtitle: "Yeni modeller, kampanyalar ve mağaza duyuruları için sosyal hesaplarımız.",
+    items: [
+      { label: "Instagram", url: "https://instagram.com/" },
+      { label: "Facebook", url: "https://facebook.com/" },
+      { label: "TikTok", url: "https://tiktok.com/" },
+    ],
   },
 };
 
@@ -89,15 +165,28 @@ const fieldsByType: Record<BlockType, FieldConfig[]> = {
     { key: "eyebrow", label: "Üst başlık" },
     { key: "title", label: "Başlık" },
     { key: "subtitle", label: "Açıklama", type: "textarea" },
+    { key: "primaryButtonLabel", label: "Birincil buton metni" },
+    { key: "primaryButtonHref", label: "Birincil buton bağlantısı", type: "url" },
+    { key: "secondaryButtonLabel", label: "İkincil buton metni" },
+    { key: "secondaryButtonHref", label: "İkincil buton bağlantısı", type: "url" },
+    { key: "highlights", label: "Hero etiketleri", type: "list" },
     { key: "imageUrl", label: "Görsel URL", type: "url" },
   ],
   services: [
     { key: "title", label: "Başlık" },
     { key: "subtitle", label: "Açıklama", type: "textarea" },
+    { key: "items", label: "Hizmet listesi", type: "list" },
   ],
   featuredProducts: [
     { key: "title", label: "Başlık" },
     { key: "subtitle", label: "Açıklama", type: "textarea" },
+    { key: "items", label: "Ürün listesi", type: "list" },
+  ],
+  brandShowcase: [
+    { key: "title", label: "Başlık" },
+    { key: "subtitle", label: "Açıklama", type: "textarea" },
+    { key: "eyewearItems", label: "Gözlük markaları ve ürünleri", type: "brandList" },
+    { key: "lensItems", label: "Lens markaları ve ürünleri", type: "brandList" },
   ],
   about: [
     { key: "title", label: "Başlık" },
@@ -113,18 +202,28 @@ const fieldsByType: Record<BlockType, FieldConfig[]> = {
   ],
   hours: [
     { key: "title", label: "Başlık" },
+    { key: "subtitle", label: "Açıklama", type: "textarea" },
     { key: "weekdays", label: "Hafta içi" },
     { key: "saturday", label: "Cumartesi" },
     { key: "sunday", label: "Pazar" },
+    { key: "note", label: "Not", type: "textarea" },
   ],
   cta: [
     { key: "title", label: "Başlık" },
     { key: "subtitle", label: "Açıklama", type: "textarea" },
+    { key: "primaryButtonLabel", label: "Birincil buton metni" },
+    { key: "primaryButtonHref", label: "Birincil buton bağlantısı", type: "url" },
+    { key: "secondaryButtonLabel", label: "İkincil buton metni" },
+    { key: "secondaryButtonHref", label: "İkincil buton bağlantısı", type: "url" },
     { key: "imageUrl", label: "Görsel URL", type: "url" },
+  ],
+  socialLinks: [
+    { key: "title", label: "Başlık" },
+    { key: "subtitle", label: "Açıklama", type: "textarea" },
+    { key: "items", label: "Sosyal hesaplar", type: "linkList" },
   ],
 };
 
-const listFieldTypes = new Set<BlockType>(["services", "featuredProducts"]);
 const imageFieldTypes = new Set<BlockType>(["hero", "about", "cta"]);
 
 function isBlockType(type: string): type is BlockType {
@@ -142,9 +241,21 @@ function textValue(content: ApiRecord, key: string) {
   return value === undefined || value === null ? "" : String(value);
 }
 
-function listValue(content: ApiRecord) {
-  const value = content.items;
+function listValue(content: ApiRecord, key = "items") {
+  const value = content[key];
   return Array.isArray(value) ? value.map(String) : [];
+}
+
+function recordListValue(content: ApiRecord, key: string) {
+  const value = content[key];
+  return Array.isArray(value)
+    ? value.filter((item): item is ApiRecord => typeof item === "object" && item !== null && !Array.isArray(item))
+    : [];
+}
+
+function recordText(record: ApiRecord, key: string) {
+  const value = record[key];
+  return value === undefined || value === null ? "" : String(value);
 }
 
 function normalizeOrders(blocks: PageBlock[]) {
@@ -215,7 +326,7 @@ export function SiteEditor() {
     setMessage(null);
   }
 
-  function updateSelectedContent(key: string, value: string | string[]) {
+  function updateSelectedContent(key: string, value: unknown) {
     if (!selectedBlock) return;
     updateSelected({
       content: {
@@ -504,26 +615,52 @@ export function SiteEditor() {
               </div>
 
               <div className="mt-5 grid gap-4">
-                {fieldsByType[selectedType].map((field) => (
-                  <label key={field.key} className="space-y-1.5 text-sm">
-                    <span className="font-medium">{field.label}</span>
-                    {field.type === "textarea" ? (
-                      <textarea
-                        className="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                        value={textValue(selectedBlock.content, field.key)}
-                        placeholder={field.placeholder}
-                        onChange={(event) => updateSelectedContent(field.key, event.target.value)}
+                {fieldsByType[selectedType].map((field) =>
+                  field.type === "brandList" ? (
+                    <div key={field.key} className="space-y-1.5 text-sm">
+                      <span className="font-medium">{field.label}</span>
+                      <BrandItemEditor
+                        items={recordListValue(selectedBlock.content, field.key)}
+                        onChange={(items) => updateSelectedContent(field.key, items)}
                       />
-                    ) : (
-                      <Input
-                        type={field.type ?? "text"}
-                        value={textValue(selectedBlock.content, field.key)}
-                        placeholder={field.placeholder}
-                        onChange={(event) => updateSelectedContent(field.key, event.target.value)}
+                    </div>
+                  ) : field.type === "linkList" ? (
+                    <div key={field.key} className="space-y-1.5 text-sm">
+                      <span className="font-medium">{field.label}</span>
+                      <LinkListEditor
+                        items={recordListValue(selectedBlock.content, field.key)}
+                        onChange={(items) => updateSelectedContent(field.key, items)}
                       />
-                    )}
-                  </label>
-                ))}
+                    </div>
+                  ) : field.type === "list" ? (
+                    <div key={field.key} className="space-y-1.5 text-sm">
+                      <span className="font-medium">{field.label}</span>
+                      <ListEditor
+                        items={listValue(selectedBlock.content, field.key)}
+                        onChange={(items) => updateSelectedContent(field.key, items)}
+                      />
+                    </div>
+                  ) : (
+                    <label key={field.key} className="space-y-1.5 text-sm">
+                      <span className="font-medium">{field.label}</span>
+                      {field.type === "textarea" ? (
+                        <textarea
+                          className="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                          value={textValue(selectedBlock.content, field.key)}
+                          placeholder={field.placeholder}
+                          onChange={(event) => updateSelectedContent(field.key, event.target.value)}
+                        />
+                      ) : (
+                        <Input
+                          type={field.type ?? "text"}
+                          value={textValue(selectedBlock.content, field.key)}
+                          placeholder={field.placeholder}
+                          onChange={(event) => updateSelectedContent(field.key, event.target.value)}
+                        />
+                      )}
+                    </label>
+                  ),
+                )}
 
                 {imageFieldTypes.has(selectedType) && (
                   <div className="rounded-lg border border-dashed p-3">
@@ -541,9 +678,6 @@ export function SiteEditor() {
                   </div>
                 )}
 
-                {listFieldTypes.has(selectedType) && (
-                  <ListEditor items={listValue(selectedBlock.content)} onChange={(items) => updateSelectedContent("items", items)} />
-                )}
               </div>
             </div>
           ) : (
@@ -607,17 +741,162 @@ function ListEditor({ items, onChange }: { items: string[]; onChange: (items: st
   );
 }
 
+function LinkListEditor({ items, onChange }: { items: ApiRecord[]; onChange: (items: ApiRecord[]) => void }) {
+  function updateItem(index: number, key: string, value: string) {
+    onChange(items.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)));
+  }
+
+  function removeItem(index: number) {
+    onChange(items.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border p-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium">Linkler</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange([...items, { label: "Yeni hesap", url: "https://" }])}
+        >
+          <Plus />
+          Ekle
+        </Button>
+      </div>
+      {items.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">Link listesi boş.</div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div key={`link-${index}`} className="grid gap-2 rounded-lg border bg-muted/30 p-3 md:grid-cols-[1fr_1.4fr_auto]">
+              <Input
+                value={recordText(item, "label")}
+                placeholder="Instagram"
+                onChange={(event) => updateItem(index, "label", event.target.value)}
+              />
+              <Input
+                type="url"
+                value={recordText(item, "url")}
+                placeholder="https://instagram.com/..."
+                onChange={(event) => updateItem(index, "url", event.target.value)}
+              />
+              <Button type="button" variant="destructive" size="icon" aria-label="Linki sil" onClick={() => removeItem(index)}>
+                <Trash2 />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BrandItemEditor({ items, onChange }: { items: ApiRecord[]; onChange: (items: ApiRecord[]) => void }) {
+  function updateItem(index: number, key: string, value: string) {
+    onChange(items.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)));
+  }
+
+  function removeItem(index: number) {
+    onChange(items.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border p-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium">Marka / ürün kartları</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange([...items, { name: "Yeni marka", description: "", imageUrl: "", url: "" }])}
+        >
+          <Plus />
+          Ekle
+        </Button>
+      </div>
+      {items.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">Liste boş.</div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div key={`brand-${index}`} className="grid gap-3 rounded-lg border bg-muted/30 p-3">
+              <div className="grid gap-2 md:grid-cols-[1fr_auto]">
+                <Input
+                  value={recordText(item, "name")}
+                  placeholder="Marka veya ürün adı"
+                  onChange={(event) => updateItem(index, "name", event.target.value)}
+                />
+                <Button type="button" variant="destructive" size="icon" aria-label="Kartı sil" onClick={() => removeItem(index)}>
+                  <Trash2 />
+                </Button>
+              </div>
+              <textarea
+                className="min-h-20 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                value={recordText(item, "description")}
+                placeholder="Kısa açıklama"
+                onChange={(event) => updateItem(index, "description", event.target.value)}
+              />
+              <div className="grid gap-2 md:grid-cols-2">
+                <Input
+                  type="url"
+                  value={recordText(item, "imageUrl")}
+                  placeholder="Görsel URL"
+                  onChange={(event) => updateItem(index, "imageUrl", event.target.value)}
+                />
+                <Input
+                  type="url"
+                  value={recordText(item, "url")}
+                  placeholder="Opsiyonel link"
+                  onChange={(event) => updateItem(index, "url", event.target.value)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PreviewBlock({ block }: { block: PageBlock }) {
   const content = block.content;
   const type = isBlockType(block.type) ? block.type : "cta";
   const imageUrl = textValue(content, "imageUrl");
 
   if (type === "hero") {
+    const highlights = listValue(content, "highlights");
+    const primaryButtonLabel = textValue(content, "primaryButtonLabel");
+    const secondaryButtonLabel = textValue(content, "secondaryButtonLabel");
+
     return (
       <section className="bg-slate-950 px-5 py-8 text-white">
         <p className="text-xs font-semibold uppercase tracking-wide text-teal-300">{textValue(content, "eyebrow") || "Optik mağazası"}</p>
         <h3 className="mt-3 text-3xl font-bold">{textValue(content, "title") || "OptiMaxx Optik"}</h3>
         <p className="mt-3 text-sm leading-6 text-slate-300">{textValue(content, "subtitle")}</p>
+        {(primaryButtonLabel || secondaryButtonLabel) && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {primaryButtonLabel ? (
+              <span className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-950">
+                {primaryButtonLabel}
+              </span>
+            ) : null}
+            {secondaryButtonLabel ? (
+              <span className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-white">
+                {secondaryButtonLabel}
+              </span>
+            ) : null}
+          </div>
+        )}
+        {highlights.length > 0 && (
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+            {highlights.map((item) => (
+              <div key={item} className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs font-medium">
+                {item}
+              </div>
+            ))}
+          </div>
+        )}
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -648,7 +927,57 @@ function PreviewBlock({ block }: { block: PageBlock }) {
     );
   }
 
+  if (type === "brandShowcase") {
+    const eyewearItems = recordListValue(content, "eyewearItems");
+    const lensItems = recordListValue(content, "lensItems");
+
+    return (
+      <section className="border-b bg-slate-950 px-5 py-6 text-white">
+        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
+        <p className="mt-2 text-sm text-slate-300">{textValue(content, "subtitle")}</p>
+        <div className="mt-4 grid gap-3">
+          {[
+            ["Gözlük", eyewearItems],
+            ["Lens", lensItems],
+          ].map(([label, items]) => (
+            <div key={String(label)} className="rounded-lg border border-white/10 bg-white/5 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-teal-300">{String(label)}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(items as ApiRecord[]).map((item, index) => (
+                  <span key={`${recordText(item, "name")}-${index}`} className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium">
+                    {recordText(item, "name") || "Yeni marka"}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (type === "socialLinks") {
+    const items = recordListValue(content, "items");
+
+    return (
+      <section className="border-b px-5 py-6">
+        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
+        <p className="mt-2 text-sm text-slate-500">{textValue(content, "subtitle")}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {items.map((item, index) => (
+            <span key={`${recordText(item, "label")}-${index}`} className="rounded-lg border px-3 py-2 text-sm font-medium">
+              {recordText(item, "label") || "Sosyal hesap"}
+            </span>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (type === "about" || type === "cta") {
+    const primaryButtonLabel = textValue(content, "primaryButtonLabel");
+    const secondaryButtonLabel = textValue(content, "secondaryButtonLabel");
+
     return (
       <section className="border-b bg-slate-50 px-5 py-6 text-center">
         {imageUrl ? (
@@ -663,6 +992,20 @@ function PreviewBlock({ block }: { block: PageBlock }) {
         ) : null}
         <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
         <p className="mt-2 text-sm leading-6 text-slate-500">{textValue(content, type === "about" ? "body" : "subtitle")}</p>
+        {type === "cta" && (primaryButtonLabel || secondaryButtonLabel) ? (
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {primaryButtonLabel ? (
+              <span className="rounded-lg bg-slate-950 px-3 py-2 text-xs font-semibold text-white">
+                {primaryButtonLabel}
+              </span>
+            ) : null}
+            {secondaryButtonLabel ? (
+              <span className="rounded-lg border px-3 py-2 text-xs font-semibold text-slate-700">
+                {secondaryButtonLabel}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </section>
     );
   }
@@ -671,7 +1014,7 @@ function PreviewBlock({ block }: { block: PageBlock }) {
     <section className="border-b px-5 py-6">
       <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
       <div className="mt-4 space-y-2 text-sm text-slate-600">
-        {["phone", "email", "address", "weekdays", "saturday", "sunday"].map((key) =>
+        {["phone", "email", "address", "weekdays", "saturday", "sunday", "note"].map((key) =>
           textValue(content, key) ? (
             <p key={key} className="flex justify-between gap-4 border-b pb-2 last:border-0">
               <span className="font-medium">{fieldLabel(key)}</span>
@@ -692,6 +1035,7 @@ function fieldLabel(key: string) {
     weekdays: "Hafta içi",
     saturday: "Cumartesi",
     sunday: "Pazar",
+    note: "Not",
   };
   return labels[key] ?? key;
 }
