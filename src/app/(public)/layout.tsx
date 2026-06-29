@@ -1,5 +1,5 @@
-import PublicHeader from "@/components/layout/public-header";
 import PublicFooter from "@/components/layout/public-footer";
+import PublicHeader from "@/components/layout/public-header";
 
 export default function PublicLayout({
   children,
@@ -14,4 +14,3 @@ export default function PublicLayout({
     </div>
   );
 }
-

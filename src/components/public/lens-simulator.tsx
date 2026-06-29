@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Eye, Monitor, Sun, Moon } from "lucide-react";
+import { Eye, Monitor, Sun, Moon } from "lucide-react";
 
 type FilterType = "blue" | "polar" | "antireflective";
 

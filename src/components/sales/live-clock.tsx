@@ -8,7 +8,12 @@ import { useState, useEffect } from "react";
  * Useful for staff to track transaction timestamps.
  */
 export function LiveClock() {
-  const [time, setTime] = useState<string>("");
+  const [time, setTime] = useState<string>(() =>
+    new Date().toLocaleTimeString("tr-TR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  );
 
   useEffect(() => {
     const formatTime = () => {
@@ -19,18 +24,12 @@ export function LiveClock() {
       });
     };
 
-    // Set immediately
-    setTime(formatTime());
-
-    // Update every 30 seconds (no need for per-second in a POS header)
     const interval = setInterval(() => {
       setTime(formatTime());
     }, 30_000);
 
     return () => clearInterval(interval);
   }, []);
-
-  if (!time) return null; // avoid hydration mismatch
 
   return (
     <div className="flex items-center gap-2 text-sm tabular-nums">
