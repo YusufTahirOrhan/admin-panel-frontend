@@ -262,6 +262,29 @@ function renderMap(src: string) {
   );
 }
 
+function normalizeCtaText(value: string) {
+  return value.trim().toLocaleLowerCase("tr-TR");
+}
+
+function isPublicCtaAllowed(label: string, href: string) {
+  if (!label.trim()) return false;
+
+  const normalizedLabel = normalizeCtaText(label);
+  const normalizedHref = normalizeCtaText(href);
+  const pathOnly = normalizedHref.replace(/^https?:\/\/[^/]+/, "");
+  const forbiddenTerms = ["login", "giris", "giriş", "admin", "panel", "randevu", "appointment"];
+
+  if (forbiddenTerms.some((term) => normalizedLabel.includes(term))) {
+    return false;
+  }
+
+  if (["/login", "/admin", "/sales"].some((path) => pathOnly === path || pathOnly.startsWith(`${path}/`))) {
+    return false;
+  }
+
+  return !["panel.optimaxx.com.tr", "randevu", "appointment"].some((term) => normalizedHref.includes(term));
+}
+
 function renderBlock(block: PageBlock) {
   const content = block.content;
   switch (block.type) {
@@ -271,6 +294,8 @@ function renderBlock(block: PageBlock) {
       const primaryButtonHref = text(content, "primaryButtonHref");
       const secondaryButtonLabel = text(content, "secondaryButtonLabel", "Koleksiyonları İncele");
       const secondaryButtonHref = text(content, "secondaryButtonHref", "#products");
+      const showPrimaryButton = isPublicCtaAllowed(primaryButtonLabel, primaryButtonHref || "#contact");
+      const showSecondaryButton = isPublicCtaAllowed(secondaryButtonLabel, secondaryButtonHref || "#services");
 
       return (
         <section key={block.order} className="bg-slate-950 text-white">
@@ -285,9 +310,9 @@ function renderBlock(block: PageBlock) {
               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
                 {text(content, "subtitle")}
               </p>
-              {(primaryButtonLabel || secondaryButtonLabel) && (
+              {(showPrimaryButton || showSecondaryButton) && (
                 <div className="mt-8 flex flex-wrap gap-3">
-                  {primaryButtonLabel ? (
+                  {showPrimaryButton ? (
                     <a
                       href={primaryButtonHref || "#contact"}
                       className="inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-slate-100"
@@ -295,7 +320,7 @@ function renderBlock(block: PageBlock) {
                       {primaryButtonLabel}
                     </a>
                   ) : null}
-                  {secondaryButtonLabel ? (
+                  {showSecondaryButton ? (
                     <a
                       href={secondaryButtonHref || "#services"}
                       className="inline-flex h-11 items-center justify-center rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
@@ -391,6 +416,8 @@ function renderBlock(block: PageBlock) {
       const primaryButtonHref = text(content, "primaryButtonHref", "#contact");
       const secondaryButtonLabel = text(content, "secondaryButtonLabel", "Hizmetleri Gör");
       const secondaryButtonHref = text(content, "secondaryButtonHref", "#services");
+      const showPrimaryButton = isPublicCtaAllowed(primaryButtonLabel, primaryButtonHref || "#contact");
+      const showSecondaryButton = isPublicCtaAllowed(secondaryButtonLabel, secondaryButtonHref || "#services");
 
       return (
         <section key={block.order} className="border-b bg-slate-950 px-6 py-16 text-white">
@@ -402,9 +429,9 @@ function renderBlock(block: PageBlock) {
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
                 {text(content, "subtitle")}
               </p>
-              {(primaryButtonLabel || secondaryButtonLabel) && (
+              {(showPrimaryButton || showSecondaryButton) && (
                 <div className="mt-8 flex flex-wrap gap-3">
-                  {primaryButtonLabel ? (
+                  {showPrimaryButton ? (
                     <a
                       href={primaryButtonHref || "#contact"}
                       className="inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-slate-100"
@@ -412,7 +439,7 @@ function renderBlock(block: PageBlock) {
                       {primaryButtonLabel}
                     </a>
                   ) : null}
-                  {secondaryButtonLabel ? (
+                  {showSecondaryButton ? (
                     <a
                       href={secondaryButtonHref || "#services"}
                       className="inline-flex h-11 items-center justify-center rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"

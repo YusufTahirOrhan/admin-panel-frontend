@@ -36,16 +36,18 @@ npm run build
 Required environment variable:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://api.example.com
+NEXT_PUBLIC_API_URL=https://api.optimaxx.com.tr
 ```
 
 Optional panel subdomain variables:
 
 ```bash
-PANEL_ORIGIN=https://store.example.com
-PANEL_HOSTNAMES=store.example.com,admin.example.com
+PANEL_ORIGIN=https://panel.optimaxx.com.tr
+PANEL_HOSTNAMES=panel.optimaxx.com.tr
 ```
 
-The public website should not expose login/admin links. Requests to `/login`, `/admin`, or `/sales` on the public host redirect to `PANEL_ORIGIN` when configured. Localhost keeps the standard local development flow.
+The public website should not expose login, admin, panel, or randevu/appointment links. Requests to `/login`, `/admin`, or `/sales` on the public host redirect to `PANEL_ORIGIN` when configured. Localhost keeps the standard local development flow.
+
+When deploying the Docker image to Heroku, the runtime binds to Heroku's `$PORT`. Cloudinary-hosted CMS images from `https://res.cloudinary.com/**` are allowed by `next.config.ts`.
 
 The final hosting target can be Vercel, a Node container, or another Next.js-compatible runtime. Choose the public URL after the domain is purchased.
