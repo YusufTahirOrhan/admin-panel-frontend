@@ -162,15 +162,17 @@ const fallbackBlocks: PageBlock[] = [
 
 async function getHomeBlocks(): Promise<PageBlock[]> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+  const fallback = process.env.NODE_ENV === "production" ? [] : fallbackBlocks;
+
   try {
     const response = await fetch(`${baseUrl}/api/v1/public/pages/home`, {
       cache: "no-store",
     });
-    if (!response.ok) return fallbackBlocks;
+    if (!response.ok) return fallback;
     const page = (await response.json()) as SitePage;
-    return page.blocks?.length ? page.blocks : fallbackBlocks;
+    return page.blocks?.length ? page.blocks : fallback;
   } catch {
-    return fallbackBlocks;
+    return fallback;
   }
 }
 
