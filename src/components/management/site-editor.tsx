@@ -1063,14 +1063,27 @@ function PreviewBlock({ block }: { block: PageBlock }) {
 function toEmbedMapUrl(rawUrl: string): string {
   if (!rawUrl) return "";
   let url = rawUrl.trim();
+
+  // Extract src if iframe tag is pasted
   const iframeMatch = url.match(/src=["']([^"']+)["']/i);
   if (iframeMatch) {
     url = iframeMatch[1];
   }
-  if (url.includes("/maps/embed") || url.includes("output=embed")) {
+
+  // Official Google Maps Embed (/maps/embed?pb=...)
+  if (url.includes("/maps/embed") && !url.includes("output=embed")) {
     return url;
   }
-  return `https://maps.google.com/maps?q=${encodeURIComponent(url)}&output=embed`;
+
+  // Extract place name if place URL
+  let query = url;
+  const placeMatch = url.match(/\/maps\/place\/([^/]+)/i);
+  if (placeMatch) {
+    query = decodeURIComponent(placeMatch[1].replace(/\+/g, " "));
+  }
+
+  // Clean embed URL without legacy info bubble banner
+  return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 }
 
 function fieldLabel(key: string) {
