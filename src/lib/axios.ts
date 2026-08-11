@@ -29,7 +29,20 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 api.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().accessToken;
+    let token = useAuthStore.getState().accessToken;
+    if (!token && typeof window !== 'undefined') {
+      try {
+        const rawStorage = localStorage.getItem('optimaxx-auth-storage');
+        if (rawStorage) {
+          const parsed = JSON.parse(rawStorage);
+          token = parsed?.state?.accessToken || null;
+          if (token) {
+            useAuthStore.getState().setAccessToken(token);
+          }
+        }
+      } catch (e) {}
+    }
+
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
