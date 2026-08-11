@@ -396,6 +396,7 @@ export function SiteEditor() {
       setMessage("Görsel yüklendi ve URL alana eklendi.");
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : "Görsel yüklenemedi.");
+      setError(friendlyApiError(exception, "Görsel yüklenemedi."));
     } finally {
       setUploading(false);
     }
@@ -416,7 +417,7 @@ export function SiteEditor() {
       });
       setMessage("Taslak kaydedildi.");
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : "Taslak kaydedilemedi.");
+      setError(friendlyApiError(exception, "Taslak kaydedilemedi. Oturumunuzu kontrol ediniz."));
     } finally {
       setSaving(false);
     }
@@ -438,7 +439,7 @@ export function SiteEditor() {
       await apiPost<SitePage>("/api/v1/admin/pages/home/publish");
       setMessage("Ana sayfa yayınlandı.");
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : "Yayınlama başarısız.");
+      setError(friendlyApiError(exception, "Yayınlama başarısız oldu. Oturumunuzu kontrol ediniz."));
     } finally {
       setSaving(false);
     }
