@@ -99,13 +99,13 @@ export function UserMenu() {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem id="user-menu-profile">
+        <DropdownMenuItem id="user-menu-profile" onClick={() => router.push("/admin/users")}>
           <UserIcon className="mr-2 h-4 w-4" />
-          Profil Ayarları
+          Kullanıcı Yönetimi
         </DropdownMenuItem>
-        <DropdownMenuItem id="user-menu-settings">
+        <DropdownMenuItem id="user-menu-settings" onClick={() => router.push("/admin/site-editor")}>
           <Settings className="mr-2 h-4 w-4" />
-          Tercihler
+          Site Editörü
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

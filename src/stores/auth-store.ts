@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type UserRole = 'OWNER' | 'ADMIN' | 'STAFF' | 'PUBLIC';
 
@@ -26,20 +27,28 @@ interface AuthState {
   getDisplayName: () => string;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  accessToken: null,
-  user: null,
-  setAccessToken: (token: string | null) => set({ accessToken: token }),
-  setUser: (user: User | null) => set({ user }),
-  logout: () => set({ accessToken: null, user: null }),
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      accessToken: null,
+      user: null,
+      setAccessToken: (token: string | null) => set({ accessToken: token }),
+      setUser: (user: User | null) => set({ user }),
+      logout: () => set({ accessToken: null, user: null }),
 
-  hasRole: (role: UserRole) => get().user?.role === role,
-  isOwner: () => get().user?.role === 'OWNER',
-  isAdmin: () => get().user?.role === 'ADMIN',
-  isStaff: () => get().user?.role === 'STAFF',
-  getDisplayName: () => {
-    const user = get().user;
-    if (!user) return 'Kullanıcı';
-    return user.fullName || user.name || user.email.split('@')[0];
-  },
-}));
+      hasRole: (role: UserRole) => get().user?.role === role,
+      isOwner: () => get().user?.role === 'OWNER',
+      isAdmin: () => get().user?.role === 'ADMIN',
+      isStaff: () => get().user?.role === 'STAFF',
+      getDisplayName: () => {
+        const user = get().user;
+        if (!user) return 'Kullanıcı';
+        return user.fullName || user.name || user.email.split('@')[0];
+      },
+    }),
+    {
+      name: 'optimaxx-auth-storage',
+    }
+  )
+);
+
