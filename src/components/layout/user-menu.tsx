@@ -19,10 +19,10 @@ import {
   User as UserIcon,
   ChevronsUpDown,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
- * User menu dropdown displaying name, role badge, and actions.
- * Consumes auth store for user data and logout.
+ * User menu dropdown displaying name, role badge, actions, and direct logout.
  */
 export function UserMenu() {
   const router = useRouter();
@@ -61,67 +61,80 @@ export function UserMenu() {
     .toUpperCase();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        id="user-menu-trigger"
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-      >
-        <Avatar className="h-7 w-7 rounded-lg border border-sidebar-border">
-          <AvatarFallback className="rounded-lg bg-gradient-to-br from-[var(--brand-teal-500)] to-[var(--brand-navy-600)] text-[10px] font-semibold text-white">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <div className="grid flex-1 text-left text-sm leading-tight">
-          <span className="truncate font-medium text-sidebar-foreground">
-            {displayName}
-          </span>
-          <span className="truncate text-xs text-sidebar-foreground/60">
-            {user?.email || "—"}
-          </span>
-        </div>
-        <ChevronsUpDown className="ml-auto h-4 w-4 text-sidebar-foreground/40" />
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent
-        className="w-56"
-        align="end"
-        side="bottom"
-        sideOffset={8}
-      >
-        <DropdownMenuLabel className="flex flex-col gap-1 p-3">
-          <span className="text-sm font-semibold">{displayName}</span>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">
+    <div className="flex items-center justify-between gap-1 w-full">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          id="user-menu-trigger"
+          className="flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring min-w-0 cursor-pointer"
+        >
+          <Avatar className="h-7 w-7 shrink-0 rounded-lg border border-sidebar-border">
+            <AvatarFallback className="rounded-lg bg-gradient-to-br from-[var(--brand-teal-500)] to-[var(--brand-navy-600)] text-[10px] font-semibold text-white">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+            <span className="truncate font-medium text-sidebar-foreground">
+              {displayName}
+            </span>
+            <span className="truncate text-xs text-sidebar-foreground/60">
               {user?.email || "—"}
             </span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {roleLabelMap[user?.role || "STAFF"] || user?.role}
-            </Badge>
           </div>
-        </DropdownMenuLabel>
+          <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 text-sidebar-foreground/40" />
+        </DropdownMenuTrigger>
 
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem id="user-menu-profile" onClick={() => router.push("/admin/users")}>
-          <UserIcon className="mr-2 h-4 w-4" />
-          Kullanıcı Yönetimi
-        </DropdownMenuItem>
-        <DropdownMenuItem id="user-menu-settings" onClick={() => router.push("/admin/site-editor")}>
-          <Settings className="mr-2 h-4 w-4" />
-          Site Editörü
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          id="user-menu-logout"
-          onClick={handleLogout}
-          variant="destructive"
+        <DropdownMenuContent
+          className="w-56"
+          align="start"
+          side="top"
+          sideOffset={8}
         >
-          <LogOut className="mr-2 h-4 w-4" />
-          Çıkış Yap
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuLabel className="flex flex-col gap-1 p-3">
+            <span className="text-sm font-semibold">{displayName}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground truncate">
+                {user?.email || "—"}
+              </span>
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
+                {roleLabelMap[user?.role || "STAFF"] || user?.role}
+              </Badge>
+            </div>
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem id="user-menu-profile" onClick={() => router.push("/admin/users")}>
+            <UserIcon className="mr-2 h-4 w-4" />
+            Kullanıcı Yönetimi
+          </DropdownMenuItem>
+          <DropdownMenuItem id="user-menu-settings" onClick={() => router.push("/admin/site-editor")}>
+            <Settings className="mr-2 h-4 w-4" />
+            Site Editörü
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            id="user-menu-logout"
+            onClick={handleLogout}
+            variant="destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Çıkış Yap
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Direct Logout Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Çıkış Yap"
+        onClick={handleLogout}
+        className="h-8 w-8 shrink-0 text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer"
+      >
+        <LogOut className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }
