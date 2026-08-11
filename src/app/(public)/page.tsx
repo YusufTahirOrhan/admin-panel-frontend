@@ -242,6 +242,19 @@ function renderImage(src: string, className: string) {
   ) : null;
 }
 
+function toEmbedMapUrl(rawUrl: string): string {
+  if (!rawUrl) return "";
+  let url = rawUrl.trim();
+  const iframeMatch = url.match(/src=["']([^"']+)["']/i);
+  if (iframeMatch) {
+    url = iframeMatch[1];
+  }
+  if (url.includes("/maps/embed") || url.includes("output=embed")) {
+    return url;
+  }
+  return `https://maps.google.com/maps?q=${encodeURIComponent(url)}&output=embed`;
+}
+
 function renderMap(src: string) {
   if (!src) {
     return (
@@ -251,14 +264,29 @@ function renderMap(src: string) {
     );
   }
 
+  const embedUrl = toEmbedMapUrl(src);
+  const directUrl = src.match(/^https?:\/\//i) ? src : `https://maps.google.com/maps?q=${encodeURIComponent(src)}`;
+
   return (
-    <iframe
-      title="OptiMaxx mağaza haritası"
-      src={src}
-      className="min-h-80 w-full rounded-lg border"
-      loading="lazy"
-      referrerPolicy="no-referrer-when-downgrade"
-    />
+    <div className="flex flex-col gap-2">
+      <iframe
+        title="OptiMaxx mağaza haritası"
+        src={embedUrl}
+        className="min-h-80 w-full rounded-lg border"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+      <div className="text-right">
+        <a
+          href={directUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-sky-600 hover:text-sky-700 hover:underline"
+        >
+          Google Haritalar'da Aç ↗
+        </a>
+      </div>
+    </div>
   );
 }
 

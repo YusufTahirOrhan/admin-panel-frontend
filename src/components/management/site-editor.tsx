@@ -1010,6 +1010,39 @@ function PreviewBlock({ block }: { block: PageBlock }) {
     );
   }
 
+  if (type === "contact") {
+    const mapUrl = textValue(content, "mapUrl");
+    return (
+      <section className="border-b px-5 py-6">
+        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
+          <div className="space-y-2 text-sm text-slate-600">
+            {["phone", "email", "address", "weekdays", "saturday", "sunday", "note"].map((key) =>
+              textValue(content, key) ? (
+                <p key={key} className="flex justify-between gap-4 border-b pb-2 last:border-0">
+                  <span className="font-medium">{fieldLabel(key)}</span>
+                  <span className="text-right">{textValue(content, key)}</span>
+                </p>
+              ) : null,
+            )}
+          </div>
+          {mapUrl ? (
+            <iframe
+              title="Harita önizleme"
+              src={toEmbedMapUrl(mapUrl)}
+              className="h-48 w-full rounded-lg border"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-48 items-center justify-center rounded-lg border bg-slate-100 text-xs text-slate-400">
+              Harita URL eklendiğinde burada görünecek
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="border-b px-5 py-6">
       <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
@@ -1025,6 +1058,19 @@ function PreviewBlock({ block }: { block: PageBlock }) {
       </div>
     </section>
   );
+}
+
+function toEmbedMapUrl(rawUrl: string): string {
+  if (!rawUrl) return "";
+  let url = rawUrl.trim();
+  const iframeMatch = url.match(/src=["']([^"']+)["']/i);
+  if (iframeMatch) {
+    url = iframeMatch[1];
+  }
+  if (url.includes("/maps/embed") || url.includes("output=embed")) {
+    return url;
+  }
+  return `https://maps.google.com/maps?q=${encodeURIComponent(url)}&output=embed`;
 }
 
 function fieldLabel(key: string) {
