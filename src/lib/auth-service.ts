@@ -1,9 +1,8 @@
 import { useAuthStore } from '@/stores/auth-store';
 import type { LoginFormData } from '@/lib/validations/auth-schemas';
 import type { User } from '@/stores/auth-store';
+import { api } from '@/lib/axios';
 
-// We use the Next.js API Routes (Proxy) to handle HttpOnly cookies
-// So the authService calls /api/auth/* instead of backend directly
 const PROXY_URL = '/api/auth';
 
 interface LoginResponse {
@@ -55,5 +54,15 @@ export const authService = {
     });
 
     useAuthStore.getState().logout();
+  },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await api.post<{ message: string }>('/api/v1/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  resetPassword: async (resetToken: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await api.post<{ message: string }>('/api/v1/auth/reset-password', { resetToken, newPassword });
+    return response.data;
   },
 };
