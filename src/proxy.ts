@@ -79,11 +79,18 @@ export function proxy(request: NextRequest) {
   }
 
   if (panelHost && pathname === "/") {
-    return NextResponse.redirect(new URL(dashboardPath(accessToken), request.url));
+    const target = dashboardPath(accessToken);
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
-  if (authenticated && pathname === "/login") {
-    return NextResponse.redirect(new URL(dashboardPath(accessToken), request.url));
+  if (pathname === "/login") {
+    if (accessToken) {
+      const target = dashboardPath(accessToken);
+      if (target !== "/login") {
+        return NextResponse.redirect(new URL(target, request.url));
+      }
+    }
+    return NextResponse.next();
   }
 
   if (pathname.startsWith("/admin")) {
