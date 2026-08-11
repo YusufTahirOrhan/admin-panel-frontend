@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import { authService } from "@/lib/auth-service";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -38,15 +39,17 @@ export function UserMenu() {
     STAFF: "Personel",
   };
 
-  const handleLogout = () => {
-    logout();
-    // Clear tokens from storage
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      logout();
+    }
     if (typeof window !== "undefined") {
       localStorage.removeItem("refreshToken");
-      document.cookie = "accessToken=; path=/; max-age=0";
-      document.cookie = "refreshToken=; path=/; max-age=0";
+      localStorage.removeItem("optimaxx-auth-storage");
     }
-    router.push("/login");
+    window.location.href = "/login";
   };
 
   /** Generate initials from display name */
