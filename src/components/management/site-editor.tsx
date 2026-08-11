@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ApiRecord, PageBlock, SitePage, apiGet, apiPost, apiPut, apiUpload } from "@/lib/management-api";
+import { ApiRecord, PageBlock, SitePage, apiGet, apiPost, apiPut, apiUpload, friendlyApiError } from "@/lib/management-api";
 import { cn } from "@/lib/utils";
 
 const blockTypes = [
@@ -395,7 +395,6 @@ export function SiteEditor() {
       updateSelectedContent("imageUrl", response.url);
       setMessage("Görsel yüklendi ve URL alana eklendi.");
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : "Görsel yüklenemedi.");
       setError(friendlyApiError(exception, "Görsel yüklenemedi."));
     } finally {
       setUploading(false);
