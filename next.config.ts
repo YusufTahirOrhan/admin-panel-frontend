@@ -30,26 +30,6 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
-        protocol: "http",
-        hostname: "localhost",
-        port: "8080",
-        pathname: "/**",
-      },
-      {
-        protocol: "http",
-        hostname: "127.0.0.1",
-        port: "8080",
-        pathname: "/**",
-      },
-    ],
-  },
-  turbopack: {
-    root: __dirname,
-  },
-  images: {
-    unoptimized: true,
-    remotePatterns: [
-      {
         protocol: "https",
         hostname: "**",
       },
@@ -62,6 +42,9 @@ const nextConfig: NextConfig = {
         hostname: "127.0.0.1",
       },
     ],
+  },
+  turbopack: {
+    root: __dirname,
   },
 };
 
