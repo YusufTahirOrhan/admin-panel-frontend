@@ -1,6 +1,8 @@
+import React from "react";
 import BrandShowcase, { type BrandShowcaseItem } from "@/components/public/brand-showcase";
 import {
   GsapHero,
+  GsapPinnedShowcase,
   GsapServices,
   GsapProducts,
   GsapAbout,
@@ -273,16 +275,18 @@ function renderBlock(block: PageBlock) {
       const showSecondaryButton = isPublicCtaAllowed(secondaryButtonLabel, secondaryButtonHref || "#services");
 
       return (
-        <GsapHero
-          key={block.order}
-          eyebrow={text(content, "eyebrow", "Mahallenizin modern optik mağazası")}
-          title={text(content, "title", "OptiMaxx Optik")}
-          subtitle={text(content, "subtitle", "Göz sağlığınız, net görüş ve stiliniz için modern optik çözümler.")}
-          highlights={listOrFallback(content.highlights, ["Optik cam", "Çerçeve", "Bakım"])}
-          imageUrl={text(content, "imageUrl")}
-          primaryButton={showPrimaryButton ? { label: primaryButtonLabel, href: primaryButtonHref || "#contact" } : null}
-          secondaryButton={showSecondaryButton ? { label: secondaryButtonLabel, href: secondaryButtonHref || "#services" } : null}
-        />
+        <React.Fragment key={block.order}>
+          <GsapHero
+            eyebrow={text(content, "eyebrow", "Mahallenizin modern optik mağazası")}
+            title={text(content, "title", "OptiMaxx Optik")}
+            subtitle={text(content, "subtitle", "Göz sağlığınız, net görüş ve stiliniz için modern optik çözümler.")}
+            highlights={listOrFallback(content.highlights, ["Optik cam", "Çerçeve", "Bakım"])}
+            imageUrl={text(content, "imageUrl")}
+            primaryButton={showPrimaryButton ? { label: primaryButtonLabel, href: primaryButtonHref || "#contact" } : null}
+            secondaryButton={showSecondaryButton ? { label: secondaryButtonLabel, href: secondaryButtonHref || "#services" } : null}
+          />
+          <GsapPinnedShowcase />
+        </React.Fragment>
       );
     }
     case "services":

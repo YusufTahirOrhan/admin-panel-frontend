@@ -1,26 +1,11 @@
 "use client";
 
-import React, { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import "./border-glow.css";
-
-export interface BorderGlowProps {
-  children: React.ReactNode;
-  className?: string;
-  edgeSensitivity?: number;
-  glowColor?: string;
-  backgroundColor?: string;
-  borderRadius?: number;
-  glowRadius?: number;
-  glowIntensity?: number;
-  coneSpread?: number;
-  animated?: boolean;
-  colors?: string[];
-  fillOpacity?: number;
-}
 
 function parseHSL(hslStr: string) {
   const match = hslStr.match(/([\d.]+)\s*([\d.]+)%?\s*([\d.]+)%?/);
-  if (!match) return { h: 160, s: 80, l: 50 };
+  if (!match) return { h: 40, s: 80, l: 80 };
   return { h: parseFloat(match[1]), s: parseFloat(match[2]), l: parseFloat(match[3]) };
 }
 
@@ -61,19 +46,8 @@ function buildGradientVars(colors: string[]) {
 function easeOutCubic(x: number) {
   return 1 - Math.pow(1 - x, 3);
 }
-
 function easeInCubic(x: number) {
   return x * x * x;
-}
-
-interface AnimateOptions {
-  start?: number;
-  end?: number;
-  duration?: number;
-  delay?: number;
-  ease?: (x: number) => number;
-  onUpdate: (v: number) => void;
-  onEnd?: () => void;
 }
 
 function animateValue({
@@ -84,7 +58,15 @@ function animateValue({
   ease = easeOutCubic,
   onUpdate,
   onEnd,
-}: AnimateOptions) {
+}: {
+  start?: number;
+  end?: number;
+  duration?: number;
+  delay?: number;
+  ease?: (x: number) => number;
+  onUpdate: (v: number) => void;
+  onEnd?: () => void;
+}) {
   const t0 = performance.now() + delay;
   function tick() {
     const elapsed = performance.now() - t0;
@@ -96,19 +78,34 @@ function animateValue({
   setTimeout(() => requestAnimationFrame(tick), delay);
 }
 
+export interface BorderGlowProps {
+  children: React.ReactNode;
+  className?: string;
+  edgeSensitivity?: number;
+  glowColor?: string;
+  backgroundColor?: string;
+  borderRadius?: number;
+  glowRadius?: number;
+  glowIntensity?: number;
+  coneSpread?: number;
+  animated?: boolean;
+  colors?: string[];
+  fillOpacity?: number;
+}
+
 export function BorderGlow({
   children,
   className = "",
   edgeSensitivity = 30,
-  glowColor = "160 80 50",
-  backgroundColor = "#059669",
-  borderRadius = 10,
+  glowColor = "170 80 60",
+  backgroundColor = "#0f172a",
+  borderRadius = 16,
   glowRadius = 30,
   glowIntensity = 1.0,
   coneSpread = 25,
   animated = false,
-  colors = ["#34d399", "#14b8a6", "#06b6d4"],
-  fillOpacity = 0.3,
+  colors = ["#14b8a6", "#3b82f6", "#6366f1"],
+  fillOpacity = 0.4,
 }: BorderGlowProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -171,7 +168,7 @@ export function BorderGlow({
     card.classList.add("sweep-active");
     card.style.setProperty("--cursor-angle", `${angleStart}deg`);
 
-    animateValue({ duration: 500, onUpdate: (v) => card.style.setProperty("--edge-proximity", String(v)) });
+    animateValue({ duration: 500, onUpdate: (v) => card.style.setProperty("--edge-proximity", v.toString()) });
     animateValue({
       ease: easeInCubic,
       duration: 1500,
@@ -196,7 +193,7 @@ export function BorderGlow({
       duration: 1500,
       start: 100,
       end: 0,
-      onUpdate: (v) => card.style.setProperty("--edge-proximity", String(v)),
+      onUpdate: (v) => card.style.setProperty("--edge-proximity", v.toString()),
       onEnd: () => card.classList.remove("sweep-active"),
     });
   }, [animated]);
@@ -208,18 +205,16 @@ export function BorderGlow({
       ref={cardRef}
       onPointerMove={handlePointerMove}
       className={`border-glow-card ${className}`}
-      style={
-        {
-          "--card-bg": backgroundColor,
-          "--edge-sensitivity": edgeSensitivity,
-          "--border-radius": `${borderRadius}px`,
-          "--glow-padding": `${glowRadius}px`,
-          "--cone-spread": coneSpread,
-          "--fill-opacity": fillOpacity,
-          ...glowVars,
-          ...buildGradientVars(colors),
-        } as React.CSSProperties
-      }
+      style={{
+        "--card-bg": backgroundColor,
+        "--edge-sensitivity": edgeSensitivity,
+        "--border-radius": `${borderRadius}px`,
+        "--glow-padding": `${glowRadius}px`,
+        "--cone-spread": coneSpread,
+        "--fill-opacity": fillOpacity,
+        ...glowVars,
+        ...buildGradientVars(colors),
+      } as React.CSSProperties}
     >
       <span className="edge-light" />
       <div className="border-glow-inner">{children}</div>

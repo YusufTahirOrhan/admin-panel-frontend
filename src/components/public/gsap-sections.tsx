@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import BorderGlow from "@/components/ui/border-glow";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -36,8 +37,8 @@ export function GsapHero({
   const statsContainerRef = useRef<HTMLDivElement>(null);
   const marqueeContainerRef = useRef<HTMLDivElement>(null);
   const marqueeTrackRef = useRef<HTMLDivElement>(null);
+  const svgPathRef = useRef<SVGPathElement>(null);
 
-  // Counter refs for GSAP snap animation
   const stat1Ref = useRef<HTMLSpanElement>(null);
   const stat2Ref = useRef<HTMLSpanElement>(null);
   const stat3Ref = useRef<HTMLSpanElement>(null);
@@ -48,14 +49,12 @@ export function GsapHero({
 
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      // 1. Badge upward translation & fade-in
       tl.fromTo(
         badgeRef.current,
         { y: 20, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.6 }
       );
 
-      // 2. Main Heading text appearance
       tl.fromTo(
         headingRef.current,
         { y: 25, opacity: 0 },
@@ -63,7 +62,6 @@ export function GsapHero({
         "-=0.4"
       );
 
-      // 3. Sub-heading sequential fade-in with 0.15s offset
       tl.fromTo(
         subtitleRef.current,
         { y: 20, opacity: 0 },
@@ -71,7 +69,6 @@ export function GsapHero({
         "-=0.65"
       );
 
-      // 4. CTA Buttons reveal
       if (ctaContainerRef.current) {
         const buttons = Array.from(ctaContainerRef.current.children);
         tl.fromTo(
@@ -82,7 +79,22 @@ export function GsapHero({
         );
       }
 
-      // 5. Dynamic Stats Counter via ScrollTrigger
+      // SVG Eyeglasses path draw animation
+      if (svgPathRef.current) {
+        const pathLength = svgPathRef.current.getTotalLength();
+        gsap.set(svgPathRef.current, {
+          strokeDasharray: pathLength,
+          strokeDashoffset: pathLength,
+        });
+
+        gsap.to(svgPathRef.current, {
+          strokeDashoffset: 0,
+          duration: 2.2,
+          ease: "power2.inOut",
+          delay: 0.3,
+        });
+      }
+
       if (statsContainerRef.current) {
         const statsObj = { count1: 0, count2: 0, count3: 0 };
         gsap.to(statsObj, {
@@ -104,7 +116,6 @@ export function GsapHero({
         });
       }
 
-      // 6. Infinite Brand Marquee Seamless Loop + Hover Deceleration
       if (marqueeTrackRef.current) {
         const marqueeTrack = marqueeTrackRef.current;
         const loopTimeline = gsap.to(marqueeTrack, {
@@ -132,14 +143,13 @@ export function GsapHero({
     { scope: containerRef }
   );
 
-  // Micro-interaction on Primary CTA Hover using GSAP
   const handlePrimaryButtonMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
     gsap.to(e.currentTarget, {
       scale: 1.03,
       y: -2,
       duration: 0.3,
       ease: "power2.out",
-      boxShadow: "0 10px 25px -5px rgba(255, 255, 255, 0.15)",
+      boxShadow: "0 10px 25px -5px rgba(45, 212, 191, 0.3)",
     });
   };
 
@@ -168,7 +178,6 @@ export function GsapHero({
 
   return (
     <section ref={containerRef} className="relative overflow-hidden bg-slate-950 text-white">
-      {/* Ambient lighting */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-teal-500/10 blur-[120px]" />
         <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-indigo-500/10 blur-[120px]" />
@@ -204,7 +213,7 @@ export function GsapHero({
                   href={primaryButton.href}
                   onMouseEnter={handlePrimaryButtonMouseEnter}
                   onMouseLeave={handlePrimaryButtonMouseLeave}
-                  className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-bold text-slate-950 transition-colors"
+                  className="inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-teal-400 to-emerald-400 px-6 text-sm font-bold text-slate-950 transition-colors shadow-md"
                 >
                   {primaryButton.label}
                 </a>
@@ -220,39 +229,39 @@ export function GsapHero({
             </div>
           )}
 
-          {/* Dynamic Stats Section */}
+          {/* Dynamic Stats with BorderGlow */}
           <div
             ref={statsContainerRef}
             className="grid max-w-lg grid-cols-3 gap-4 pt-6"
           >
-            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-4 text-center backdrop-blur-sm">
-              <div className="text-2xl font-bold text-white">
-                <span ref={stat1Ref}>0</span>
-                <span>+</span>
-              </div>
-              <p className="mt-1 text-xs font-medium text-slate-400">Mutlu Müşteri</p>
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-4 text-center backdrop-blur-sm">
-              <div className="text-2xl font-bold text-white">
-                <span ref={stat2Ref}>0</span>
-                <span>+</span>
-              </div>
-              <p className="mt-1 text-xs font-medium text-slate-400">Yıllık Tecrübe</p>
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-4 text-center backdrop-blur-sm">
-              <div className="text-2xl font-bold text-white">
-                <span ref={stat3Ref}>0</span>
-                <span>+</span>
-              </div>
-              <p className="mt-1 text-xs font-medium text-slate-400">Marka Seçeneği</p>
-            </div>
+            {[
+              { ref: stat1Ref, label: "Mutlu Müşteri", colors: ["#5eead4", "#2dd4bf", "#0f766e"] },
+              { ref: stat2Ref, label: "Yıllık Tecrübe", colors: ["#818cf8", "#6366f1", "#4338ca"] },
+              { ref: stat3Ref, label: "Marka Seçeneği", colors: ["#f472b6", "#ec4899", "#be185d"] },
+            ].map((stat, i) => (
+              <BorderGlow
+                key={stat.label}
+                backgroundColor="#0f172a"
+                borderRadius={16}
+                glowColor={i === 0 ? "170 80 60" : i === 1 ? "240 80 60" : "330 80 60"}
+                colors={stat.colors}
+                edgeSensitivity={35}
+                glowRadius={25}
+              >
+                <div className="px-3 py-4 text-center">
+                  <div className="text-2xl font-bold text-white">
+                    <span ref={stat.ref}>0</span>
+                    <span>+</span>
+                  </div>
+                  <p className="mt-1 text-xs font-medium text-slate-400">{stat.label}</p>
+                </div>
+              </BorderGlow>
+            ))}
           </div>
         </div>
 
-        {/* Hero image visual block */}
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
+        {/* Hero SVG Glasses Visual */}
+        <div className="relative flex items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-sm">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -260,12 +269,41 @@ export function GsapHero({
               className="aspect-[4/3] w-full rounded-xl object-cover"
             />
           ) : (
-            <div className="aspect-[4/3] rounded-xl bg-[radial-gradient(circle_at_30%_20%,#5eead4,transparent_28%),radial-gradient(circle_at_80%_70%,#818cf8,transparent_30%),linear-gradient(135deg,#0f172a,#1e293b)]" />
+            <div className="relative flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900">
+              <svg
+                className="h-48 w-full text-teal-400"
+                viewBox="0 0 400 160"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Decorative background optical rings */}
+                <circle cx="100" cy="80" r="65" stroke="rgba(45, 212, 191, 0.15)" strokeWidth="1" />
+                <circle cx="300" cy="80" r="65" stroke="rgba(45, 212, 191, 0.15)" strokeWidth="1" />
+                
+                {/* Animated Eyeglasses Outline */}
+                <path
+                  ref={svgPathRef}
+                  d="M 40 80 C 40 45, 160 45, 160 80 C 160 115, 40 115, 40 80 Z M 240 80 C 240 45, 360 45, 360 80 C 360 115, 240 115, 240 80 Z M 160 75 Q 200 65, 240 75 M 40 75 L 10 65 M 360 75 L 390 65"
+                  stroke="url(#glasses-gradient)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                <defs>
+                  <linearGradient id="glasses-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#2dd4bf" />
+                    <stop offset="50%" stopColor="#818cf8" />
+                    <stop offset="100%" stopColor="#f472b6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Infinite Brand Marquee Strip */}
+      {/* Infinite Brand Marquee */}
       <div
         ref={marqueeContainerRef}
         className="relative overflow-hidden border-t border-white/10 bg-slate-950/80 py-6"
@@ -274,10 +312,7 @@ export function GsapHero({
           WebkitMaskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
         }}
       >
-        <div
-          ref={marqueeTrackRef}
-          className="flex w-max gap-12 whitespace-nowrap"
-        >
+        <div ref={marqueeTrackRef} className="flex w-max gap-12 whitespace-nowrap">
           {[...marqueeBrandsList, ...marqueeBrandsList].map((brand, i) => (
             <span
               key={`${brand}-${i}`}
@@ -293,7 +328,104 @@ export function GsapHero({
 }
 
 // ==========================================
-// 2. SERVICES SECTION GSAP COMPONENT
+// 2. APPLE-STYLE PINNED SHOWCASE GSAP COMPONENT (OPTION B / C)
+// ==========================================
+export function GsapPinnedShowcase() {
+  const pinSectionRef = useRef<HTMLElement>(null);
+  const pinContainerRef = useRef<HTMLDivElement>(null);
+  const lensGlowRef = useRef<HTMLDivElement>(null);
+  const slide1Ref = useRef<HTMLDivElement>(null);
+  const slide2Ref = useRef<HTMLDivElement>(null);
+  const slide3Ref = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      if (!pinSectionRef.current || !pinContainerRef.current) return;
+
+      const pinTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: pinSectionRef.current,
+          start: "top top",
+          end: "+=200%",
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+        },
+      });
+
+      // Slide 1 -> Slide 2
+      pinTl.to(slide1Ref.current, { opacity: 0, y: -30, duration: 0.8 });
+      pinTl.to(lensGlowRef.current, { scale: 1.3, rotate: 90, duration: 1 }, "<");
+      pinTl.fromTo(slide2Ref.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.3");
+
+      // Slide 2 -> Slide 3
+      pinTl.to(slide2Ref.current, { opacity: 0, y: -30, duration: 0.8 });
+      pinTl.to(lensGlowRef.current, { scale: 1.6, rotate: 180, duration: 1 }, "<");
+      pinTl.fromTo(slide3Ref.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.3");
+
+      ScrollTrigger.refresh();
+    },
+    { scope: pinSectionRef }
+  );
+
+  return (
+    <section ref={pinSectionRef} className="relative min-h-screen bg-slate-950 text-white overflow-hidden">
+      <div ref={pinContainerRef} className="relative flex h-screen w-full items-center justify-center px-6">
+        {/* Center Pinned Visual Glass Spec */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div
+            ref={lensGlowRef}
+            className="h-80 w-80 rounded-full bg-gradient-to-tr from-teal-500/20 via-sky-500/20 to-purple-500/20 blur-3xl transition-transform"
+          />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
+          {/* Slide 1 */}
+          <div ref={slide1Ref} className="space-y-4">
+            <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-teal-300">
+              OptiMaxx Teknolojisi
+            </span>
+            <h2 className="text-4xl font-extrabold sm:text-5xl lg:text-6xl text-white">
+              Progresif Odaklama Teknolojisi
+            </h2>
+            <p className="mx-auto max-w-xl text-lg text-slate-300">
+              Uzak, orta ve yakın mesafeler arasında kesintisiz ve doğal görüş geçişi sunan özel optik cam tasarımları.
+            </p>
+          </div>
+
+          {/* Slide 2 */}
+          <div ref={slide2Ref} className="absolute inset-0 flex flex-col items-center justify-center space-y-4 opacity-0 pointer-events-none">
+            <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-sky-300">
+              Dijital Koruması
+            </span>
+            <h2 className="text-4xl font-extrabold sm:text-5xl lg:text-6xl text-white">
+              Mavi Işık & UV Filtresi
+            </h2>
+            <p className="mx-auto max-w-xl text-lg text-slate-300">
+              Ekran karşısında geçen uzun saatlerde göz yorgunluğunu en aza indiren akıllı cam kaplamaları.
+            </p>
+          </div>
+
+          {/* Slide 3 */}
+          <div ref={slide3Ref} className="absolute inset-0 flex flex-col items-center justify-center space-y-4 opacity-0 pointer-events-none">
+            <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-purple-300">
+              Kristal Berraklık
+            </span>
+            <h2 className="text-4xl font-extrabold sm:text-5xl lg:text-6xl text-white">
+              Süper Anti-Refle Kaplama
+            </h2>
+            <p className="mx-auto max-w-xl text-lg text-slate-300">
+              Yansımaları sıfırlayan, su ve leke tutmayan hidrofobik yüzey teknolojisi.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ==========================================
+// 3. SERVICES SECTION WITH BORDERGLOW GSAP COMPONENT
 // ==========================================
 interface GsapServicesProps {
   title: string;
@@ -310,7 +442,6 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
     () => {
       if (!sectionRef.current) return;
 
-      // Header Block entrance
       if (headerRef.current) {
         gsap.fromTo(
           headerRef.current,
@@ -329,7 +460,6 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
         );
       }
 
-      // Service cards staggered entrance when 20% enters viewport
       if (gridRef.current) {
         const cards = Array.from(gridRef.current.children);
         gsap.fromTo(
@@ -355,22 +485,6 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
     { scope: sectionRef }
   );
 
-  const handleCardMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    gsap.to(e.currentTarget, {
-      y: -6,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-  };
-
-  const handleCardMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    gsap.to(e.currentTarget, {
-      y: 0,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-  };
-
   return (
     <section
       ref={sectionRef}
@@ -392,22 +506,28 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
 
         <div ref={gridRef} className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => (
-            <div
+            <BorderGlow
               key={item}
-              onMouseEnter={handleCardMouseEnter}
-              onMouseLeave={handleCardMouseLeave}
-              className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-xl hover:border-teal-200"
+              backgroundColor="#ffffff"
+              borderRadius={16}
+              glowColor="170 80 50"
+              colors={["#2dd4bf", "#38bdf8", "#818cf8"]}
+              edgeSensitivity={30}
+              glowRadius={30}
+              className="border-slate-200 shadow-sm transition-all hover:shadow-lg"
             >
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+              <div className="p-6">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="font-bold text-slate-900">{item}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
+                </p>
               </div>
-              <h3 className="font-bold text-slate-900">{item}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
-              </p>
-            </div>
+            </BorderGlow>
           ))}
         </div>
       </div>
@@ -416,7 +536,7 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
 }
 
 // ==========================================
-// 3. HIGHLIGHTS / FEATURED PRODUCTS GSAP COMPONENT
+// 4. HIGHLIGHTS / FEATURED PRODUCTS WITH BORDERGLOW GSAP COMPONENT
 // ==========================================
 interface GsapProductsProps {
   title: string;
@@ -511,21 +631,31 @@ export function GsapProducts({ title, subtitle, items }: GsapProductsProps) {
 
         <div ref={gridRef} className="mt-10 grid gap-5 md:grid-cols-3">
           {items.map((item) => (
-            <div
+            <BorderGlow
               key={item}
-              onMouseEnter={handleCardMouseEnter}
-              onMouseLeave={handleCardMouseLeave}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-lg hover:border-indigo-200"
+              backgroundColor="#ffffff"
+              borderRadius={16}
+              glowColor="210 80 50"
+              colors={["#38bdf8", "#818cf8", "#c084fc"]}
+              edgeSensitivity={30}
+              glowRadius={30}
+              className="border-slate-200 shadow-sm transition-all hover:shadow-lg"
             >
-              <h3 className="text-lg font-bold text-slate-900">{item}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
-              </p>
-              <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
-                <span>Detayları Gör</span>
-                <span className="cta-arrow">→</span>
+              <div
+                onMouseEnter={handleCardMouseEnter}
+                onMouseLeave={handleCardMouseLeave}
+                className="p-6"
+              >
+                <h3 className="text-lg font-bold text-slate-900">{item}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
+                </p>
+                <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
+                  <span>Detayları Gör</span>
+                  <span className="cta-arrow">→</span>
+                </div>
               </div>
-            </div>
+            </BorderGlow>
           ))}
         </div>
       </div>
@@ -534,7 +664,7 @@ export function GsapProducts({ title, subtitle, items }: GsapProductsProps) {
 }
 
 // ==========================================
-// 4. ABOUT / EXPERIENCE PHILOSOPHY SECTION GSAP COMPONENT
+// 5. ABOUT GSAP COMPONENT
 // ==========================================
 interface GsapAboutProps {
   title: string;
@@ -551,7 +681,6 @@ export function GsapAbout({ title, body, imageUrl }: GsapAboutProps) {
     () => {
       if (!sectionRef.current) return;
 
-      // Left Text slide-in from left
       if (leftContentRef.current) {
         gsap.fromTo(
           leftContentRef.current,
@@ -570,7 +699,6 @@ export function GsapAbout({ title, body, imageUrl }: GsapAboutProps) {
         );
       }
 
-      // Right Visual Parallax bound to scroll
       if (rightVisualRef.current) {
         gsap.to(rightVisualRef.current, {
           yPercent: 10,
@@ -619,7 +747,7 @@ export function GsapAbout({ title, body, imageUrl }: GsapAboutProps) {
 }
 
 // ==========================================
-// 5. CALL-TO-ACTION SECTION GSAP COMPONENT
+// 6. CALL-TO-ACTION GSAP COMPONENT
 // ==========================================
 interface GsapCtaProps {
   title: string;
@@ -737,7 +865,7 @@ export function GsapCta({
 }
 
 // ==========================================
-// 6. WORKING HOURS SECTION GSAP COMPONENT
+// 7. WORKING HOURS GSAP COMPONENT WITH BORDERGLOW
 // ==========================================
 interface GsapHoursProps {
   title: string;
@@ -837,17 +965,25 @@ export function GsapHours({
             ["Cumartesi", saturday],
             ["Pazar", sunday],
           ].map(([label, value]) => (
-            <div
+            <BorderGlow
               key={label}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-lg hover:-translate-y-1"
+              backgroundColor="#ffffff"
+              borderRadius={16}
+              glowColor="40 80 50"
+              colors={["#f59e0b", "#f97316", "#ef4444"]}
+              edgeSensitivity={30}
+              glowRadius={30}
+              className="border-slate-200 shadow-sm"
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                {label}
-              </p>
-              <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
-                {value}
-              </p>
-            </div>
+              <div className="p-6">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  {label}
+                </p>
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+                  {value}
+                </p>
+              </div>
+            </BorderGlow>
           ))}
         </div>
       </div>
@@ -856,7 +992,7 @@ export function GsapHours({
 }
 
 // ==========================================
-// 7. CONTACT SECTION GSAP COMPONENT
+// 8. CONTACT GSAP COMPONENT
 // ==========================================
 interface GsapContactProps {
   title: string;
@@ -989,7 +1125,7 @@ function toEmbedMapUrl(rawUrl: string): string {
 }
 
 // ==========================================
-// 8. SOCIAL LINKS & FOOTER GSAP COMPONENT
+// 9. SOCIAL LINKS & FOOTER GSAP COMPONENT
 // ==========================================
 interface GsapSocialFooterProps {
   socialTitle: string;
