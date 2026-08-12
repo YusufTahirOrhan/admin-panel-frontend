@@ -58,6 +58,8 @@ interface ResourcePageProps {
   fields?: ResourceField[];
   columns: ResourceColumn[];
   emptyText?: string;
+  hideHeader?: boolean;
+  hideInlineForm?: boolean;
 }
 
 const pageSizes = [10, 20, 50];
@@ -73,6 +75,8 @@ export function ResourcePage({
   fields = [],
   columns,
   emptyText = "Kayıt bulunamadı.",
+  hideHeader = false,
+  hideInlineForm = false,
 }: ResourcePageProps) {
   const [items, setItems] = useState<ApiRecord[]>([]);
   const [form, setForm] = useState<ApiRecord>({});
@@ -254,16 +258,18 @@ export function ResourcePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      {!hideHeader && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          </div>
+          <Button type="button" variant="outline" onClick={() => void load()} disabled={loading}>
+            <RefreshCw className={cn(loading && "animate-spin")} />
+            Yenile
+          </Button>
         </div>
-        <Button type="button" variant="outline" onClick={() => void load()} disabled={loading}>
-          <RefreshCw className={cn(loading && "animate-spin")} />
-          Yenile
-        </Button>
-      </div>
+      )}
 
       {error && (
         <div className="flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -274,7 +280,7 @@ export function ResourcePage({
         </div>
       )}
 
-      {fields.length > 0 && createPath && (
+      {!hideInlineForm && fields.length > 0 && createPath && (
         <form onSubmit={submit} className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>

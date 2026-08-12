@@ -6,7 +6,7 @@ import { apiGet, apiPost, normalizeList, translateEnum } from "@/lib/management-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag } from "lucide-react";
+import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag, Receipt } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -176,15 +176,21 @@ export default function AdminTransactionsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-1">
+    <div className="space-y-6">
+      {/* Single Clean Header Bar */}
+      <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Satış İşlemleri & Fişler</h1>
-          <p className="text-sm text-slate-500">Kayıtlı müşterilere, belirlenen satış türlerine ve envanter ürünlerine göre işlem gerçekleştirin.</p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <Receipt className="size-6 text-emerald-600" />
+            Satış İşlemleri & Fişler
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Kayıtlı müşterilere, tanımlı satış türlerine ve envanter ürünlerine göre güvenle satış gerçekleştirin.
+          </p>
         </div>
         <Button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
         >
           <ShoppingCart className="h-4 w-4" />
           + Yeni Satış Kaydı
@@ -198,12 +204,9 @@ export default function AdminTransactionsPage() {
         listPath="/api/v1/sales/transactions"
         createPath="/api/v1/sales/transactions"
         detailPath={(id) => `/api/v1/sales/transactions/${id}`}
-        fields={[
-          { name: "customerName", label: "Müşteri adı", required: true },
-          { name: "amount", label: "Tutar", type: "number", required: true },
-          { name: "paymentMethod", label: "Ödeme Yöntemi", type: "select", options: ["CASH", "CARD", "TRANSFER"] },
-          { name: "notes", label: "Not", type: "textarea" },
-        ]}
+        hideHeader={true}
+        hideInlineForm={true}
+        fields={[]}
         columns={[
           { key: "receiptNumber", label: "Fiş No" },
           { key: "customerName", label: "Müşteri" },
@@ -219,7 +222,7 @@ export default function AdminTransactionsPage() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-              <ShoppingCart className="h-5 w-5 text-teal-600" />
+              <ShoppingCart className="h-5 w-5 text-emerald-600" />
               Yeni Satış Kaydı Oluştur
             </DialogTitle>
           </DialogHeader>
@@ -236,10 +239,10 @@ export default function AdminTransactionsPage() {
             {transactionTypes.length > 0 && (
               <div className="space-y-1.5">
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                  <Tag className="h-4 w-4 text-teal-600" /> Satış / İşlem Türü Seçin *
+                  <Tag className="h-4 w-4 text-emerald-600" /> Satış / İşlem Türü Seçin *
                 </label>
                 <select
-                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                   value={selectedTypeId}
                   onChange={(e) => setSelectedTypeId(e.target.value)}
                 >
@@ -255,10 +258,10 @@ export default function AdminTransactionsPage() {
             {/* Registered Customer Selection */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                <UserCheck className="h-4 w-4 text-teal-600" /> Kayıtlı Müşteri Seçin
+                <UserCheck className="h-4 w-4 text-emerald-600" /> Kayıtlı Müşteri Seçin
               </label>
               <select
-                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 value={selectedCustomerId}
                 onChange={(e) => {
                   setSelectedCustomerId(e.target.value);
@@ -285,10 +288,10 @@ export default function AdminTransactionsPage() {
             {/* Inventory Product Selection */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                <PackageCheck className="h-4 w-4 text-teal-600" /> Envanterdeki Kayıtlı Ürün *
+                <PackageCheck className="h-4 w-4 text-emerald-600" /> Envanterdeki Kayıtlı Ürün *
               </label>
               <select
-                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 value={selectedItemId}
                 onChange={(e) => handleProductSelect(e.target.value)}
               >
@@ -329,7 +332,7 @@ export default function AdminTransactionsPage() {
               <div>
                 <label className="text-xs font-semibold text-slate-700">Ödeme Yöntemi</label>
                 <select
-                  className="mt-1 flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+                  className="mt-1 flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 >
@@ -340,7 +343,7 @@ export default function AdminTransactionsPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-700">Hesaplanan Toplam Tutar</label>
-                <div className="mt-1 flex h-10 items-center rounded-md border bg-slate-50 px-3 text-sm font-bold text-teal-700">
+                <div className="mt-1 flex h-10 items-center rounded-md border bg-slate-50 px-3 text-sm font-bold text-emerald-700">
                   {((unitPrice || 100) * quantity).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </div>
               </div>
@@ -364,7 +367,7 @@ export default function AdminTransactionsPage() {
             <Button
               onClick={handleCreateSale}
               disabled={saving || !selectedItemId}
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {saving ? "Satış Yapılıyor..." : "Satışı Tamamla & Stoğu Düş"}
             </Button>
