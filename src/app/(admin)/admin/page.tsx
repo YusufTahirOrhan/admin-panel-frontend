@@ -15,6 +15,7 @@ import { ApiRecord, apiGet, friendlyApiError, normalizeList } from "@/lib/manage
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { ShinyText } from "@/components/ui/shiny-text";
 import { NumberTicker } from "@/components/ui/number-ticker";
+import { DecryptedText } from "@/components/ui/decrypted-text";
 
 interface RevenueSummary {
   totalRevenue: number;
@@ -158,7 +159,12 @@ export default function AdminDashboardPage() {
           <ShinyText text="Gösterge Paneli" speed={6} />
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          OptiMaxx Mağaza performansınıza canlı istatistiklerle genel bakış.
+          <DecryptedText
+            text="OptiMaxx Mağaza performansınıza canlı istatistiklerle genel bakış."
+            animateOn="hover"
+            speed={40}
+            className="text-emerald-600 dark:text-emerald-400 font-medium"
+          />
         </p>
       </div>
 
