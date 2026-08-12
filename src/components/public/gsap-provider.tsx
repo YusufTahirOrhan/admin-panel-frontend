@@ -4,9 +4,8 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+gsap.registerPlugin(ScrollTrigger);
 
 export default function GsapSmoothScrollProvider({
   children,
@@ -15,10 +14,16 @@ export default function GsapSmoothScrollProvider({
 }) {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 1.5,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential deceleration curve for smooth stopping
+      orientation: "vertical",
+      gestureOrientation: "vertical",
       smoothWheel: true,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.5,
     });
+
+    (window as any).lenis = lenis;
 
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -29,15 +34,15 @@ export default function GsapSmoothScrollProvider({
     gsap.ticker.add(tickerCb);
     gsap.ticker.lagSmoothing(0);
 
-    // Refresh ScrollTrigger once everything is mounted
     const refreshTimer = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 100);
+    }, 200);
 
     return () => {
       clearTimeout(refreshTimer);
       gsap.ticker.remove(tickerCb);
       lenis.destroy();
+      delete (window as any).lenis;
     };
   }, []);
 

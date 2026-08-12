@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
-
-gsap.registerPlugin(ScrollToPlugin);
 
 export default function PublicHeader() {
   const headerRef = useRef<HTMLElement>(null);
@@ -46,11 +43,15 @@ export default function PublicHeader() {
       e.preventDefault();
       const target = document.querySelector(href);
       if (target) {
-        gsap.to(window, {
-          duration: 1.2,
-          scrollTo: { y: target, offsetY: 70 },
-          ease: "power3.inOut",
-        });
+        const lenis = (window as any).lenis;
+        if (lenis && typeof lenis.scrollTo === "function") {
+          lenis.scrollTo(target as HTMLElement, {
+            offset: -70,
+            duration: 1.6,
+          });
+        } else {
+          target.scrollIntoView({ behavior: "smooth" });
+        }
       }
     }
   };

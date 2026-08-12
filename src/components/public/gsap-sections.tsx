@@ -4,7 +4,6 @@ import React, { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import BorderGlow from "@/components/ui/border-glow";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -79,7 +78,7 @@ export function GsapHero({
         );
       }
 
-      // SVG Eyeglasses path draw animation
+      // Animated SVG Eyeglasses path draw
       if (svgPathRef.current) {
         const pathLength = svgPathRef.current.getTotalLength();
         gsap.set(svgPathRef.current, {
@@ -143,13 +142,27 @@ export function GsapHero({
     { scope: containerRef }
   );
 
+  const handleButtonClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        const lenis = (window as any).lenis;
+        if (lenis && typeof lenis.scrollTo === "function") {
+          lenis.scrollTo(target as HTMLElement, { offset: -70, duration: 1.6 });
+        } else {
+          target.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+  };
+
   const handlePrimaryButtonMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
     gsap.to(e.currentTarget, {
       scale: 1.03,
       y: -2,
       duration: 0.3,
       ease: "power2.out",
-      boxShadow: "0 10px 25px -5px rgba(45, 212, 191, 0.3)",
     });
   };
 
@@ -159,7 +172,6 @@ export function GsapHero({
       y: 0,
       duration: 0.3,
       ease: "power2.out",
-      boxShadow: "0 0px 0px 0px rgba(0, 0, 0, 0)",
     });
   };
 
@@ -211,9 +223,10 @@ export function GsapHero({
               {primaryButton && (
                 <a
                   href={primaryButton.href}
+                  onClick={(e) => handleButtonClick(e, primaryButton.href)}
                   onMouseEnter={handlePrimaryButtonMouseEnter}
                   onMouseLeave={handlePrimaryButtonMouseLeave}
-                  className="inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-teal-400 to-emerald-400 px-6 text-sm font-bold text-slate-950 transition-colors shadow-md"
+                  className="inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-teal-400 to-emerald-400 px-6 text-sm font-bold text-slate-950 shadow-md transition-colors"
                 >
                   {primaryButton.label}
                 </a>
@@ -221,6 +234,7 @@ export function GsapHero({
               {secondaryButton && (
                 <a
                   href={secondaryButton.href}
+                  onClick={(e) => handleButtonClick(e, secondaryButton.href)}
                   className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 px-6 text-sm font-semibold text-white transition-all hover:bg-white/10"
                 >
                   {secondaryButton.label}
@@ -229,33 +243,26 @@ export function GsapHero({
             </div>
           )}
 
-          {/* Dynamic Stats with BorderGlow */}
+          {/* Dynamic Stats Cards */}
           <div
             ref={statsContainerRef}
             className="grid max-w-lg grid-cols-3 gap-4 pt-6"
           >
             {[
-              { ref: stat1Ref, label: "Mutlu Müşteri", colors: ["#5eead4", "#2dd4bf", "#0f766e"] },
-              { ref: stat2Ref, label: "Yıllık Tecrübe", colors: ["#818cf8", "#6366f1", "#4338ca"] },
-              { ref: stat3Ref, label: "Marka Seçeneği", colors: ["#f472b6", "#ec4899", "#be185d"] },
-            ].map((stat, i) => (
-              <BorderGlow
+              { ref: stat1Ref, label: "Mutlu Müşteri" },
+              { ref: stat2Ref, label: "Yıllık Tecrübe" },
+              { ref: stat3Ref, label: "Marka Seçeneği" },
+            ].map((stat) => (
+              <div
                 key={stat.label}
-                backgroundColor="#0f172a"
-                borderRadius={16}
-                glowColor={i === 0 ? "170 80 60" : i === 1 ? "240 80 60" : "330 80 60"}
-                colors={stat.colors}
-                edgeSensitivity={35}
-                glowRadius={25}
+                className="group rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-center backdrop-blur-md transition-all duration-300 hover:border-teal-400/40 hover:bg-white/10 hover:-translate-y-1"
               >
-                <div className="px-3 py-4 text-center">
-                  <div className="text-2xl font-bold text-white">
-                    <span ref={stat.ref}>0</span>
-                    <span>+</span>
-                  </div>
-                  <p className="mt-1 text-xs font-medium text-slate-400">{stat.label}</p>
+                <div className="text-2xl font-bold text-white">
+                  <span ref={stat.ref}>0</span>
+                  <span className="text-teal-400">+</span>
                 </div>
-              </BorderGlow>
+                <p className="mt-1 text-xs font-medium text-slate-400">{stat.label}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -276,11 +283,9 @@ export function GsapHero({
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                {/* Decorative background optical rings */}
                 <circle cx="100" cy="80" r="65" stroke="rgba(45, 212, 191, 0.15)" strokeWidth="1" />
                 <circle cx="300" cy="80" r="65" stroke="rgba(45, 212, 191, 0.15)" strokeWidth="1" />
                 
-                {/* Animated Eyeglasses Outline */}
                 <path
                   ref={svgPathRef}
                   d="M 40 80 C 40 45, 160 45, 160 80 C 160 115, 40 115, 40 80 Z M 240 80 C 240 45, 360 45, 360 80 C 360 115, 240 115, 240 80 Z M 160 75 Q 200 65, 240 75 M 40 75 L 10 65 M 360 75 L 390 65"
@@ -328,96 +333,91 @@ export function GsapHero({
 }
 
 // ==========================================
-// 2. APPLE-STYLE PINNED SHOWCASE GSAP COMPONENT (OPTION B / C)
+// 2. FLUID OPTICAL TECH SHOWCASE (REPLACES ABRUPT PINNING)
 // ==========================================
 export function GsapPinnedShowcase() {
-  const pinSectionRef = useRef<HTMLElement>(null);
-  const pinContainerRef = useRef<HTMLDivElement>(null);
-  const lensGlowRef = useRef<HTMLDivElement>(null);
-  const slide1Ref = useRef<HTMLDivElement>(null);
-  const slide2Ref = useRef<HTMLDivElement>(null);
-  const slide3Ref = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      if (!pinSectionRef.current || !pinContainerRef.current) return;
+      if (!sectionRef.current || !cardsRef.current) return;
 
-      const pinTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: pinSectionRef.current,
-          start: "top top",
-          end: "+=200%",
-          pin: true,
-          scrub: 1,
-          anticipatePin: 1,
-        },
-      });
-
-      // Slide 1 -> Slide 2
-      pinTl.to(slide1Ref.current, { opacity: 0, y: -30, duration: 0.8 });
-      pinTl.to(lensGlowRef.current, { scale: 1.3, rotate: 90, duration: 1 }, "<");
-      pinTl.fromTo(slide2Ref.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.3");
-
-      // Slide 2 -> Slide 3
-      pinTl.to(slide2Ref.current, { opacity: 0, y: -30, duration: 0.8 });
-      pinTl.to(lensGlowRef.current, { scale: 1.6, rotate: 180, duration: 1 }, "<");
-      pinTl.fromTo(slide3Ref.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.3");
+      const cards = Array.from(cardsRef.current.children);
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 35 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.18,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: cardsRef.current,
+            start: "top 85%",
+            once: true,
+          },
+        }
+      );
 
       ScrollTrigger.refresh();
     },
-    { scope: pinSectionRef }
+    { scope: sectionRef }
   );
 
+  const features = [
+    {
+      tag: "Optik Odaklama",
+      title: "Progresif Odaklama Teknolojisi",
+      desc: "Uzak, orta ve yakın mesafeler arasında kesintisiz ve doğal görüş geçişi sunan özel optik cam tasarımları.",
+      gradient: "from-teal-500/20 via-teal-500/5 to-transparent",
+      badgeColor: "text-teal-300 border-teal-500/30 bg-teal-500/10",
+    },
+    {
+      tag: "Dijital Koruma",
+      title: "Mavi Işık & UV Filtresi",
+      desc: "Ekran karşısında geçen uzun saatlerde göz yorgunluğunu en aza indiren akıllı cam kaplamaları.",
+      gradient: "from-sky-500/20 via-sky-500/5 to-transparent",
+      badgeColor: "text-sky-300 border-sky-500/30 bg-sky-500/10",
+    },
+    {
+      tag: "Kristal Berraklık",
+      title: "Süper Anti-Refle Kaplama",
+      desc: "Yansımaları sıfırlayan, su ve leke tutmayan hidrofobik yüzey teknolojisi.",
+      gradient: "from-purple-500/20 via-purple-500/5 to-transparent",
+      badgeColor: "text-purple-300 border-purple-500/30 bg-purple-500/10",
+    },
+  ];
+
   return (
-    <section ref={pinSectionRef} className="relative min-h-screen bg-slate-950 text-white overflow-hidden">
-      <div ref={pinContainerRef} className="relative flex h-screen w-full items-center justify-center px-6">
-        {/* Center Pinned Visual Glass Spec */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div
-            ref={lensGlowRef}
-            className="h-80 w-80 rounded-full bg-gradient-to-tr from-teal-500/20 via-sky-500/20 to-purple-500/20 blur-3xl transition-transform"
-          />
+    <section ref={sectionRef} className="border-b border-white/10 bg-slate-950 px-6 py-20 text-white">
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center">
+          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-300">
+            OptiMaxx Teknolojisi
+          </span>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+            Göz Sağlığı ve Konfor Standartları
+          </h2>
         </div>
 
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
-          {/* Slide 1 */}
-          <div ref={slide1Ref} className="space-y-4">
-            <span className="rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-teal-300">
-              OptiMaxx Teknolojisi
-            </span>
-            <h2 className="text-4xl font-extrabold sm:text-5xl lg:text-6xl text-white">
-              Progresif Odaklama Teknolojisi
-            </h2>
-            <p className="mx-auto max-w-xl text-lg text-slate-300">
-              Uzak, orta ve yakın mesafeler arasında kesintisiz ve doğal görüş geçişi sunan özel optik cam tasarımları.
-            </p>
-          </div>
+        <div ref={cardsRef} className="mt-12 grid gap-6 md:grid-cols-3">
+          {features.map((feat) => (
+            <div
+              key={feat.title}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-8 shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-2xl"
+            >
+              <div className={`pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br ${feat.gradient} blur-2xl transition-all duration-500 group-hover:scale-150`} />
+              
+              <span className={`inline-block rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${feat.badgeColor}`}>
+                {feat.tag}
+              </span>
 
-          {/* Slide 2 */}
-          <div ref={slide2Ref} className="absolute inset-0 flex flex-col items-center justify-center space-y-4 opacity-0 pointer-events-none">
-            <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-sky-300">
-              Dijital Koruması
-            </span>
-            <h2 className="text-4xl font-extrabold sm:text-5xl lg:text-6xl text-white">
-              Mavi Işık & UV Filtresi
-            </h2>
-            <p className="mx-auto max-w-xl text-lg text-slate-300">
-              Ekran karşısında geçen uzun saatlerde göz yorgunluğunu en aza indiren akıllı cam kaplamaları.
-            </p>
-          </div>
-
-          {/* Slide 3 */}
-          <div ref={slide3Ref} className="absolute inset-0 flex flex-col items-center justify-center space-y-4 opacity-0 pointer-events-none">
-            <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-purple-300">
-              Kristal Berraklık
-            </span>
-            <h2 className="text-4xl font-extrabold sm:text-5xl lg:text-6xl text-white">
-              Süper Anti-Refle Kaplama
-            </h2>
-            <p className="mx-auto max-w-xl text-lg text-slate-300">
-              Yansımaları sıfırlayan, su ve leke tutmayan hidrofobik yüzey teknolojisi.
-            </p>
-          </div>
+              <h3 className="mt-5 text-xl font-bold text-white">{feat.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-300">{feat.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -425,7 +425,7 @@ export function GsapPinnedShowcase() {
 }
 
 // ==========================================
-// 3. SERVICES SECTION WITH BORDERGLOW GSAP COMPONENT
+// 3. SERVICES SECTION GSAP COMPONENT (DISTINCT CLEAN GLASS CARDS)
 // ==========================================
 interface GsapServicesProps {
   title: string;
@@ -506,28 +506,20 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
 
         <div ref={gridRef} className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => (
-            <BorderGlow
+            <div
               key={item}
-              backgroundColor="#ffffff"
-              borderRadius={16}
-              glowColor="170 80 50"
-              colors={["#2dd4bf", "#38bdf8", "#818cf8"]}
-              edgeSensitivity={30}
-              glowRadius={30}
-              className="border-slate-200 shadow-sm transition-all hover:shadow-lg"
+              className="group rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-6 shadow-sm transition-all duration-300 hover:border-teal-300 hover:shadow-xl hover:-translate-y-1.5"
             >
-              <div className="p-6">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-slate-900">{item}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
-                </p>
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md transition-transform duration-300 group-hover:scale-110">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
               </div>
-            </BorderGlow>
+              <h3 className="font-bold text-slate-900">{item}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
+              </p>
+            </div>
           ))}
         </div>
       </div>
@@ -536,7 +528,7 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
 }
 
 // ==========================================
-// 4. HIGHLIGHTS / FEATURED PRODUCTS WITH BORDERGLOW GSAP COMPONENT
+// 4. HIGHLIGHTS / FEATURED PRODUCTS GSAP COMPONENT (MODERN ELEVATED CARDS)
 // ==========================================
 interface GsapProductsProps {
   title: string;
@@ -631,31 +623,21 @@ export function GsapProducts({ title, subtitle, items }: GsapProductsProps) {
 
         <div ref={gridRef} className="mt-10 grid gap-5 md:grid-cols-3">
           {items.map((item) => (
-            <BorderGlow
+            <div
               key={item}
-              backgroundColor="#ffffff"
-              borderRadius={16}
-              glowColor="210 80 50"
-              colors={["#38bdf8", "#818cf8", "#c084fc"]}
-              edgeSensitivity={30}
-              glowRadius={30}
-              className="border-slate-200 shadow-sm transition-all hover:shadow-lg"
+              onMouseEnter={handleCardMouseEnter}
+              onMouseLeave={handleCardMouseLeave}
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-indigo-300 hover:shadow-xl hover:-translate-y-1.5"
             >
-              <div
-                onMouseEnter={handleCardMouseEnter}
-                onMouseLeave={handleCardMouseLeave}
-                className="p-6"
-              >
-                <h3 className="text-lg font-bold text-slate-900">{item}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
-                </p>
-                <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
-                  <span>Detayları Gör</span>
-                  <span className="cta-arrow">→</span>
-                </div>
+              <h3 className="text-lg font-bold text-slate-900">{item}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
+              </p>
+              <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
+                <span>Detayları Gör</span>
+                <span className="cta-arrow">→</span>
               </div>
-            </BorderGlow>
+            </div>
           ))}
         </div>
       </div>
@@ -815,6 +797,21 @@ export function GsapCta({
     { scope: sectionRef }
   );
 
+  const handleButtonClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        const lenis = (window as any).lenis;
+        if (lenis && typeof lenis.scrollTo === "function") {
+          lenis.scrollTo(target as HTMLElement, { offset: -70, duration: 1.6 });
+        } else {
+          target.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+  };
+
   return (
     <section ref={sectionRef} className="border-b border-white/10 bg-slate-950 px-6 py-20 text-white">
       <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-[1.2fr_0.8fr]">
@@ -833,7 +830,8 @@ export function GsapCta({
               {primaryButton && (
                 <a
                   href={primaryButton.href}
-                  className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-bold text-slate-950 transition-all hover:bg-slate-100 hover:scale-105"
+                  onClick={(e) => handleButtonClick(e, primaryButton.href)}
+                  className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-bold text-slate-950 transition-all hover:bg-slate-100 hover:scale-105 shadow-md"
                 >
                   {primaryButton.label}
                 </a>
@@ -841,6 +839,7 @@ export function GsapCta({
               {secondaryButton && (
                 <a
                   href={secondaryButton.href}
+                  onClick={(e) => handleButtonClick(e, secondaryButton.href)}
                   className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 px-6 text-sm font-semibold text-white transition-all hover:bg-white/10"
                 >
                   {secondaryButton.label}
@@ -865,7 +864,7 @@ export function GsapCta({
 }
 
 // ==========================================
-// 7. WORKING HOURS GSAP COMPONENT WITH BORDERGLOW
+// 7. WORKING HOURS GSAP COMPONENT (TIMETABLE CARDS)
 // ==========================================
 interface GsapHoursProps {
   title: string;
@@ -961,29 +960,32 @@ export function GsapHours({
 
         <div ref={cardsRef} className="mt-10 grid gap-4 md:grid-cols-3">
           {[
-            ["Hafta içi", weekdays],
-            ["Cumartesi", saturday],
-            ["Pazar", sunday],
-          ].map(([label, value]) => (
-            <BorderGlow
+            ["Hafta içi", weekdays, "Açık"],
+            ["Cumartesi", saturday, "Açık"],
+            ["Pazar", sunday, sunday.toLowerCase().includes("kapalı") ? "Kapalı" : "Açık"],
+          ].map(([label, value, status]) => (
+            <div
               key={label}
-              backgroundColor="#ffffff"
-              borderRadius={16}
-              glowColor="40 80 50"
-              colors={["#f59e0b", "#f97316", "#ef4444"]}
-              edgeSensitivity={30}
-              glowRadius={30}
-              className="border-slate-200 shadow-sm"
+              className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-amber-300 hover:shadow-lg hover:-translate-y-1"
             >
-              <div className="p-6">
+              <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   {label}
                 </p>
-                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
-                  {value}
-                </p>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                    status === "Açık"
+                      ? "bg-emerald-50 text-emerald-600"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  {status}
+                </span>
               </div>
-            </BorderGlow>
+              <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+                {value}
+              </p>
+            </div>
           ))}
         </div>
       </div>
