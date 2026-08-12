@@ -24,7 +24,7 @@ export function NotificationCenter() {
     setLoading(true);
     try {
       const data = await apiGet<any>("/api/v1/admin/analytics/low-stock");
-      const list = normalizeList(data) as LowStockItem[];
+      const list = normalizeList(data) as unknown as LowStockItem[];
       setItems(list);
     } catch {
       // Mock items if endpoint is empty
