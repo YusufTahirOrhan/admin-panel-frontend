@@ -239,16 +239,16 @@ export default function AdminTransactionsPage() {
             {/* Transaction Type Selection */}
             {transactionTypes.length > 0 && (
               <div className="space-y-1.5">
-                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                  <Tag className="h-4 w-4 text-emerald-600" /> Satış / İşlem Türü Seçin *
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Tag className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Satış / İşlem Türü Seçin *
                 </label>
                 <select
-                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                  className="flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
                   value={selectedTypeId}
                   onChange={(e) => setSelectedTypeId(e.target.value)}
                 >
                   {transactionTypes.map((t) => (
-                    <option key={t.id} value={t.id}>
+                    <option key={t.id} value={t.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                       {t.name} ({t.code})
                     </option>
                   ))}
@@ -258,20 +258,20 @@ export default function AdminTransactionsPage() {
 
             {/* Registered Customer Selection */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                <UserCheck className="h-4 w-4 text-emerald-600" /> Kayıtlı Müşteri Seçin
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <UserCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Kayıtlı Müşteri Seçin
               </label>
               <select
-                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                className="flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
                 value={selectedCustomerId}
                 onChange={(e) => {
                   setSelectedCustomerId(e.target.value);
                   if (e.target.value) setQuickCustomerName("");
                 }}
               >
-                <option value="">-- Kayıtlı Müşterilerden Seç (Veya Perakende) --</option>
+                <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">-- Kayıtlı Müşterilerden Seç (Veya Perakende) --</option>
                 {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                     {c.firstName} {c.lastName} {c.phone ? `(${c.phone})` : ""}
                   </option>
                 ))}
@@ -281,24 +281,24 @@ export default function AdminTransactionsPage() {
                   placeholder="Veya Hızlı Perakende Müşteri Adı Yazın"
                   value={quickCustomerName}
                   onChange={(e) => setQuickCustomerName(e.target.value)}
-                  className="mt-1 text-xs"
+                  className="mt-1 text-xs border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
                 />
               )}
             </div>
 
             {/* Inventory Product Selection */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                <PackageCheck className="h-4 w-4 text-emerald-600" /> Envanterdeki Kayıtlı Ürün *
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <PackageCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Envanterdeki Kayıtlı Ürün *
               </label>
               <select
-                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                className="flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
                 value={selectedItemId}
                 onChange={(e) => handleProductSelect(e.target.value)}
               >
-                <option value="">-- Envanterden Ürün Seçin --</option>
+                <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">-- Envanterden Ürün Seçin --</option>
                 {inventoryItems.map((item) => (
-                  <option key={item.id} value={item.id} disabled={item.quantity <= 0}>
+                  <option key={item.id} value={item.id} disabled={item.quantity <= 0} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                     {item.name} [{item.sku}] - Stok: {item.quantity} Adet {item.quantity <= 0 ? "(TÜKENDİ)" : ""}
                   </option>
                 ))}
@@ -307,68 +307,68 @@ export default function AdminTransactionsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700">Satış Miktarı (Adet)</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Satış Miktarı (Adet)</label>
                 <Input
                   type="number"
                   min={1}
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                  className="mt-1"
+                  className="mt-1 border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Birim Fiyat (TL)</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Birim Fiyat (TL)</label>
                 <Input
                   type="number"
                   min={0}
                   placeholder="Örn: 250"
                   value={unitPrice || ""}
                   onChange={(e) => setUnitPrice(Math.max(0, Number(e.target.value) || 0))}
-                  className="mt-1"
+                  className="mt-1 border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700">Ödeme Yöntemi</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Ödeme Yöntemi</label>
                 <select
-                  className="mt-1 flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 >
-                  <option value="CASH">{translateEnum("CASH")}</option>
-                  <option value="CARD">{translateEnum("CARD")}</option>
-                  <option value="TRANSFER">{translateEnum("TRANSFER")}</option>
+                  <option value="CASH" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{translateEnum("CASH")}</option>
+                  <option value="CARD" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{translateEnum("CARD")}</option>
+                  <option value="TRANSFER" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{translateEnum("TRANSFER")}</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Hesaplanan Toplam Tutar</label>
-                <div className="mt-1 flex h-10 items-center rounded-md border bg-slate-50 px-3 text-sm font-bold text-emerald-700">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Hesaplanan Toplam Tutar</label>
+                <div className="mt-1 flex h-10 items-center rounded-md border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/40 px-3 text-sm font-bold text-emerald-700 dark:text-emerald-400">
                   {((unitPrice || 100) * quantity).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700">Not / Satış Açıklaması</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Not / Satış Açıklaması</label>
               <Input
                 placeholder="Örn: Garanti kartı verildi, kılıf hediye edildi"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="mt-1 text-xs"
+                className="mt-1 text-xs border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setModalOpen(false)}>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
               İptal
             </Button>
             <Button
               onClick={handleCreateSale}
               disabled={saving || !selectedItemId}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
             >
               {saving ? "Satış Yapılıyor..." : "Satışı Tamamla & Stoğu Düş"}
             </Button>
