@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { ResourcePage } from "@/components/management/resource-page";
-import { apiGet, apiPost, normalizeList } from "@/lib/management-api";
+import { apiGet, apiPost, normalizeList, translateEnum } from "@/lib/management-api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, UserCheck, PackageCheck, AlertCircle } from "lucide-react";
+import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -23,15 +23,24 @@ interface InventoryItem {
   quantity: number;
 }
 
+interface TransactionType {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+}
+
 export default function AdminTransactionsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>([]);
   
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [quickCustomerName, setQuickCustomerName] = useState<string>("");
   const [selectedItemId, setSelectedItemId] = useState<string>("");
+  const [selectedTypeId, setSelectedTypeId] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [unitPrice, setUnitPrice] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<string>("CASH");
@@ -44,9 +53,10 @@ export default function AdminTransactionsPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [cData, iData] = await Promise.all([
+        const [cData, iData, tData] = await Promise.all([
           apiGet<unknown>("/api/v1/sales/customers?size=200"),
           apiGet<unknown>("/api/v1/admin/inventory/items"),
+          apiGet<unknown>("/api/v1/sales/transaction-types"),
         ]);
         
         setCustomers(
@@ -67,6 +77,18 @@ export default function AdminTransactionsPage() {
             quantity: Number(rec.quantity || 0),
           })).filter((i) => i.id)
         );
+
+        const loadedTypes = normalizeList(tData).map((rec) => ({
+          id: String(rec.id || ""),
+          code: String(rec.code || ""),
+          name: String(rec.name || rec.code || ""),
+          description: String(rec.description || ""),
+        })).filter((t) => t.id);
+
+        setTransactionTypes(loadedTypes);
+        if (loadedTypes.length > 0 && !selectedTypeId) {
+          setSelectedTypeId(loadedTypes[0].id);
+        }
       } catch {
         // Ignored
       }
@@ -74,13 +96,13 @@ export default function AdminTransactionsPage() {
     if (modalOpen) {
       loadData();
     }
-  }, [modalOpen]);
+  }, [modalOpen, selectedTypeId]);
 
   function handleProductSelect(itemId: string) {
     setSelectedItemId(itemId);
     const item = inventoryItems.find((i) => i.id === itemId);
     if (item && item.quantity <= 0) {
-      setError(`" ${item.name}" stokta tükenmiş.`);
+      setError(`"${item.name}" stokta tükenmiş.`);
     } else {
       setError(null);
     }
@@ -119,18 +141,8 @@ export default function AdminTransactionsPage() {
     setError(null);
 
     try {
-      // Find transactionType or fallback
-      let typeId = "";
-      try {
-        const types = await apiGet<unknown>("/api/v1/sales/transaction-types");
-        const list = normalizeList(types);
-        if (list.length > 0) {
-          typeId = String(list[0].id);
-        }
-      } catch {}
-
       await apiPost("/api/v1/sales/transactions", {
-        transactionTypeId: typeId || undefined,
+        transactionTypeId: selectedTypeId || undefined,
         customerId: selectedCustomerId || undefined,
         customerName: customerName,
         amount: totalAmount,
@@ -168,7 +180,7 @@ export default function AdminTransactionsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-1">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Satış İşlemleri & Fişler</h1>
-          <p className="text-sm text-slate-500">Kayıtlı müşterilere ve envanterdeki ürünlere göre satış işlemlerini gerçekleştirin.</p>
+          <p className="text-sm text-slate-500">Kayıtlı müşterilere, belirlenen satış türlerine ve envanter ürünlerine göre işlem gerçekleştirin.</p>
         </div>
         <Button
           onClick={() => setModalOpen(true)}
@@ -182,19 +194,20 @@ export default function AdminTransactionsPage() {
       <ResourcePage
         key={refreshKey}
         title="Satış Kayıtları"
-        description="Tamamlanan satışları, müşteri ve ödeme detaylarını inceleyin."
+        description="Tamamlanan satışları, işlem türlerini, müşteri ve ödeme detaylarını inceleyin."
         listPath="/api/v1/sales/transactions"
         createPath="/api/v1/sales/transactions"
         detailPath={(id) => `/api/v1/sales/transactions/${id}`}
         fields={[
           { name: "customerName", label: "Müşteri adı", required: true },
           { name: "amount", label: "Tutar", type: "number", required: true },
-          { name: "paymentMethod", label: "Ödeme", type: "select", options: ["CASH", "CARD", "TRANSFER"] },
+          { name: "paymentMethod", label: "Ödeme Yöntemi", type: "select", options: ["CASH", "CARD", "TRANSFER"] },
           { name: "notes", label: "Not", type: "textarea" },
         ]}
         columns={[
           { key: "receiptNumber", label: "Fiş No" },
           { key: "customerName", label: "Müşteri" },
+          { key: "transactionType", label: "Satış Türü" },
           { key: "amount", label: "Tutar (TL)" },
           { key: "paymentMethod", label: "Ödeme Yöntemi" },
           { key: "status", label: "Durum" },
@@ -219,10 +232,30 @@ export default function AdminTransactionsPage() {
               </div>
             ) : null}
 
+            {/* Transaction Type Selection */}
+            {transactionTypes.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                  <Tag className="h-4 w-4 text-teal-600" /> Satış / İşlem Türü Seçin *
+                </label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+                  value={selectedTypeId}
+                  onChange={(e) => setSelectedTypeId(e.target.value)}
+                >
+                  {transactionTypes.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} ({t.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Registered Customer Selection */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                <UserRoundIcon /> Kayıtlı Müşteri Seçin
+                <UserCheck className="h-4 w-4 text-teal-600" /> Kayıtlı Müşteri Seçin
               </label>
               <select
                 className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
@@ -300,9 +333,9 @@ export default function AdminTransactionsPage() {
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 >
-                  <option value="CASH">Nakit</option>
-                  <option value="CARD">Kredi / Banka Kartı</option>
-                  <option value="TRANSFER">Havale / EFT</option>
+                  <option value="CASH">{translateEnum("CASH")}</option>
+                  <option value="CARD">{translateEnum("CARD")}</option>
+                  <option value="TRANSFER">{translateEnum("TRANSFER")}</option>
                 </select>
               </div>
               <div>
@@ -340,8 +373,4 @@ export default function AdminTransactionsPage() {
       </Dialog>
     </div>
   );
-}
-
-function UserRoundIcon() {
-  return <UserCheck className="h-4 w-4 text-teal-600" />;
 }

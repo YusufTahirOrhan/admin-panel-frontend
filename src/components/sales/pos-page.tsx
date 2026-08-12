@@ -562,10 +562,22 @@ export function PosPage() {
             <Input type="number" min="0" value={taxRate} onChange={(event) => setTaxRate(Math.max(0, Number(event.target.value) || 0))} placeholder="KDV %" />
             <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod)} className="h-8 rounded-lg border bg-background px-2 text-sm">
               <option value="CASH">Nakit</option>
-              <option value="CARD">Kart</option>
-              <option value="TRANSFER">Havale/transfer</option>
+              <option value="CARD">Kredi / Banka Kartı</option>
+              <option value="TRANSFER">Havale / EFT</option>
             </select>
           </div>
+          {transactionTypes.length > 0 && (
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Satış / İşlem Türü</label>
+              <select value={transactionTypeId} onChange={(event) => setTransactionTypeId(event.target.value)} className="h-9 w-full rounded-lg border bg-background px-2 text-sm">
+                {transactionTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name || type.code}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <Input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="Ödeme referansı" />
 
           <div className="space-y-2 border-t pt-3 text-sm">

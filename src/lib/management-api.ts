@@ -98,11 +98,57 @@ export function isApiRecord(value: unknown): value is ApiRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+export const ENUM_TRANSLATIONS: Record<string, string> = {
+  // Ödeme Yöntemleri
+  CASH: "Nakit",
+  CARD: "Kredi / Banka Kartı",
+  TRANSFER: "Havale / EFT",
+
+  // Durumlar
+  COMPLETED: "Tamamlandı",
+  PENDING: "Beklemede",
+  CANCELLED: "İptal Edildi",
+  ACTIVE: "Aktif",
+  INACTIVE: "Pasif",
+  SUSPENDED: "Askıda",
+
+  // İşlem Kategori Türleri
+  SALE: "Satış İşlemi",
+  REPAIR: "Tamir / Servis",
+  PRESCRIPTION: "Reçeteli Satış",
+  OTHER: "Diğer İşlem",
+
+  // İşlem Türü Kodları
+  RETAIL_SALE: "Perakende Satış",
+  WHOLESALE: "Toptan Satış",
+  REPAIR_SERVICE: "Tamir / Servis Bedeli",
+  REFUND: "İade İşlemi",
+  SPECIAL_ORDER: "Özel Sipariş",
+
+  // Kullanıcı Rolleri
+  OWNER: "İşletme Sahibi",
+  ADMIN: "Yönetici",
+  STAFF: "Personel",
+};
+
+export function translateEnum(value: unknown): string {
+  if (value === undefined || value === null || value === "") return "-";
+  if (typeof value === "boolean") return value ? "Aktif" : "Pasif";
+  if (typeof value !== "string") return String(value);
+  return ENUM_TRANSLATIONS[value] || value;
+}
+
 export function fieldValue(record: ApiRecord, keys: string[]): string {
   for (const key of keys) {
     const value = record[key];
     if (value !== undefined && value !== null && value !== "") {
-      return String(value);
+      if (typeof value === "object" && value !== null) {
+        const obj = value as Record<string, unknown>;
+        if (typeof obj.name === "string" && obj.name.trim()) return obj.name;
+        if (typeof obj.title === "string" && obj.title.trim()) return obj.title;
+        if (typeof obj.label === "string" && obj.label.trim()) return obj.label;
+      }
+      return translateEnum(value);
     }
   }
   return "-";
