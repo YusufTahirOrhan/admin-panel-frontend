@@ -181,7 +181,6 @@ export default function AdminDashboardPage() {
               spotlightColor={card.spotlight}
               className="p-5"
             >
-              <div className={`absolute inset-x-0 top-0 h-1 ${card.accent}`} />
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">{card.label}</p>

@@ -10,12 +10,12 @@ interface DotPatternBackgroundProps {
 export function DotPatternBackground({ className, children }: DotPatternBackgroundProps) {
   return (
     <div className={cn("relative min-h-screen w-full bg-background transition-colors duration-200", className)}>
-      {/* SVG Dot Pattern Grid Overlay */}
+      {/* Noticeable Dot Pattern Grid Overlay */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.07]"
+        className="pointer-events-none absolute inset-0 opacity-25 dark:opacity-35"
         style={{
-          backgroundImage: `radial-gradient(var(--foreground) 1px, transparent 1px)`,
-          backgroundSize: "24px 24px",
+          backgroundImage: `radial-gradient(#94a3b8 1.2px, transparent 1.2px)`,
+          backgroundSize: "20px 20px",
         }}
       />
       <div className="relative z-10">{children}</div>
