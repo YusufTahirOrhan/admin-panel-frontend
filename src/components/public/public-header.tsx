@@ -38,6 +38,18 @@ export default function PublicHeader() {
     { scope: headerRef }
   );
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (window.location.pathname === "/") {
+      e.preventDefault();
+      const lenis = (window as any).lenis;
+      if (lenis && typeof lenis.scrollTo === "function") {
+        lenis.scrollTo(0, { duration: 1.6 });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.startsWith("#")) {
       e.preventDefault();
@@ -65,6 +77,7 @@ export default function PublicHeader() {
         <Link
           ref={logoRef}
           href="/"
+          onClick={handleLogoClick}
           className="group flex items-center gap-2"
         >
           <span className="text-xl font-extrabold tracking-tight text-white transition-colors group-hover:text-teal-300">
