@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import BorderGlow from "@/components/ui/border-glow";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -78,7 +79,6 @@ export function GsapHero({
         );
       }
 
-      // Animated SVG Eyeglasses path draw
       if (svgPathRef.current) {
         const pathLength = svgPathRef.current.getTotalLength();
         gsap.set(svgPathRef.current, {
@@ -243,26 +243,33 @@ export function GsapHero({
             </div>
           )}
 
-          {/* Dynamic Stats Cards */}
+          {/* Dynamic Stats Cards with BorderGlow */}
           <div
             ref={statsContainerRef}
             className="grid max-w-lg grid-cols-3 gap-4 pt-6"
           >
             {[
-              { ref: stat1Ref, label: "Mutlu Müşteri" },
-              { ref: stat2Ref, label: "Yıllık Tecrübe" },
-              { ref: stat3Ref, label: "Marka Seçeneği" },
+              { ref: stat1Ref, label: "Mutlu Müşteri", colors: ["#5eead4", "#2dd4bf", "#0f766e"] },
+              { ref: stat2Ref, label: "Yıllık Tecrübe", colors: ["#818cf8", "#6366f1", "#4338ca"] },
+              { ref: stat3Ref, label: "Marka Seçeneği", colors: ["#f472b6", "#ec4899", "#be185d"] },
             ].map((stat) => (
-              <div
+              <BorderGlow
                 key={stat.label}
-                className="group rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-center backdrop-blur-md transition-all duration-300 hover:border-teal-400/40 hover:bg-white/10 hover:-translate-y-1"
+                backgroundColor="#0f172a"
+                borderRadius={16}
+                glowColor="170 80 60"
+                colors={stat.colors}
+                edgeSensitivity={35}
+                glowRadius={30}
               >
-                <div className="text-2xl font-bold text-white">
-                  <span ref={stat.ref}>0</span>
-                  <span className="text-teal-400">+</span>
+                <div className="px-4 py-4 text-center">
+                  <div className="text-2xl font-bold text-white">
+                    <span ref={stat.ref}>0</span>
+                    <span className="text-teal-400">+</span>
+                  </div>
+                  <p className="mt-1 text-xs font-medium text-slate-400">{stat.label}</p>
                 </div>
-                <p className="mt-1 text-xs font-medium text-slate-400">{stat.label}</p>
-              </div>
+              </BorderGlow>
             ))}
           </div>
         </div>
@@ -333,7 +340,7 @@ export function GsapHero({
 }
 
 // ==========================================
-// 2. FLUID OPTICAL TECH SHOWCASE (REPLACES ABRUPT PINNING)
+// 2. FLUID OPTICAL TECH SHOWCASE WITH BORDERGLOW
 // ==========================================
 export function GsapPinnedShowcase() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -371,22 +378,22 @@ export function GsapPinnedShowcase() {
       tag: "Optik Odaklama",
       title: "Progresif Odaklama Teknolojisi",
       desc: "Uzak, orta ve yakın mesafeler arasında kesintisiz ve doğal görüş geçişi sunan özel optik cam tasarımları.",
-      gradient: "from-teal-500/20 via-teal-500/5 to-transparent",
       badgeColor: "text-teal-300 border-teal-500/30 bg-teal-500/10",
+      colors: ["#2dd4bf", "#0f766e", "#14b8a6"],
     },
     {
       tag: "Dijital Koruma",
       title: "Mavi Işık & UV Filtresi",
       desc: "Ekran karşısında geçen uzun saatlerde göz yorgunluğunu en aza indiren akıllı cam kaplamaları.",
-      gradient: "from-sky-500/20 via-sky-500/5 to-transparent",
       badgeColor: "text-sky-300 border-sky-500/30 bg-sky-500/10",
+      colors: ["#38bdf8", "#0284c7", "#0284c7"],
     },
     {
       tag: "Kristal Berraklık",
       title: "Süper Anti-Refle Kaplama",
       desc: "Yansımaları sıfırlayan, su ve leke tutmayan hidrofobik yüzey teknolojisi.",
-      gradient: "from-purple-500/20 via-purple-500/5 to-transparent",
       badgeColor: "text-purple-300 border-purple-500/30 bg-purple-500/10",
+      colors: ["#c084fc", "#7e22ce", "#a855f7"],
     },
   ];
 
@@ -404,19 +411,26 @@ export function GsapPinnedShowcase() {
 
         <div ref={cardsRef} className="mt-12 grid gap-6 md:grid-cols-3">
           {features.map((feat) => (
-            <div
+            <BorderGlow
               key={feat.title}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-8 shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-2xl"
+              backgroundColor="#090d16"
+              borderRadius={20}
+              glowColor="180 80 60"
+              colors={feat.colors}
+              edgeSensitivity={30}
+              glowRadius={35}
+              glowIntensity={1.2}
+              coneSpread={25}
             >
-              <div className={`pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br ${feat.gradient} blur-2xl transition-all duration-500 group-hover:scale-150`} />
-              
-              <span className={`inline-block rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${feat.badgeColor}`}>
-                {feat.tag}
-              </span>
+              <div className="p-8">
+                <span className={`inline-block rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${feat.badgeColor}`}>
+                  {feat.tag}
+                </span>
 
-              <h3 className="mt-5 text-xl font-bold text-white">{feat.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-300">{feat.desc}</p>
-            </div>
+                <h3 className="mt-5 text-xl font-bold text-white">{feat.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-300">{feat.desc}</p>
+              </div>
+            </BorderGlow>
           ))}
         </div>
       </div>
@@ -425,7 +439,7 @@ export function GsapPinnedShowcase() {
 }
 
 // ==========================================
-// 3. SERVICES SECTION GSAP COMPONENT (DISTINCT CLEAN GLASS CARDS)
+// 3. SERVICES SECTION GSAP COMPONENT WITH BORDERGLOW
 // ==========================================
 interface GsapServicesProps {
   title: string;
@@ -506,20 +520,28 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
 
         <div ref={gridRef} className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => (
-            <div
+            <BorderGlow
               key={item}
-              className="group rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50/80 to-white p-6 shadow-sm transition-all duration-300 hover:border-teal-300 hover:shadow-xl hover:-translate-y-1.5"
+              backgroundColor="#ffffff"
+              borderRadius={16}
+              glowColor="170 80 50"
+              colors={["#2dd4bf", "#38bdf8", "#818cf8"]}
+              edgeSensitivity={30}
+              glowRadius={30}
+              glowIntensity={1.0}
             >
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md transition-transform duration-300 group-hover:scale-110">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+              <div className="p-6">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="font-bold text-slate-900">{item}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
+                </p>
               </div>
-              <h3 className="font-bold text-slate-900">{item}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
-              </p>
-            </div>
+            </BorderGlow>
           ))}
         </div>
       </div>
@@ -528,7 +550,7 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
 }
 
 // ==========================================
-// 4. HIGHLIGHTS / FEATURED PRODUCTS GSAP COMPONENT (MODERN ELEVATED CARDS)
+// 4. HIGHLIGHTS / FEATURED PRODUCTS GSAP COMPONENT WITH BORDERGLOW
 // ==========================================
 interface GsapProductsProps {
   title: string;
@@ -623,21 +645,31 @@ export function GsapProducts({ title, subtitle, items }: GsapProductsProps) {
 
         <div ref={gridRef} className="mt-10 grid gap-5 md:grid-cols-3">
           {items.map((item) => (
-            <div
+            <BorderGlow
               key={item}
-              onMouseEnter={handleCardMouseEnter}
-              onMouseLeave={handleCardMouseLeave}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-indigo-300 hover:shadow-xl hover:-translate-y-1.5"
+              backgroundColor="#ffffff"
+              borderRadius={16}
+              glowColor="210 80 50"
+              colors={["#38bdf8", "#818cf8", "#c084fc"]}
+              edgeSensitivity={30}
+              glowRadius={30}
+              glowIntensity={1.0}
             >
-              <h3 className="text-lg font-bold text-slate-900">{item}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
-              </p>
-              <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
-                <span>Detayları Gör</span>
-                <span className="cta-arrow">→</span>
+              <div
+                onMouseEnter={handleCardMouseEnter}
+                onMouseLeave={handleCardMouseLeave}
+                className="p-6"
+              >
+                <h3 className="text-lg font-bold text-slate-900">{item}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
+                </p>
+                <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
+                  <span>Detayları Gör</span>
+                  <span className="cta-arrow">→</span>
+                </div>
               </div>
-            </div>
+            </BorderGlow>
           ))}
         </div>
       </div>
@@ -864,7 +896,7 @@ export function GsapCta({
 }
 
 // ==========================================
-// 7. WORKING HOURS GSAP COMPONENT (TIMETABLE CARDS)
+// 7. WORKING HOURS GSAP COMPONENT WITH BORDERGLOW
 // ==========================================
 interface GsapHoursProps {
   title: string;
@@ -964,28 +996,36 @@ export function GsapHours({
             ["Cumartesi", saturday, "Açık"],
             ["Pazar", sunday, sunday.toLowerCase().includes("kapalı") ? "Kapalı" : "Açık"],
           ].map(([label, value, status]) => (
-            <div
+            <BorderGlow
               key={label}
-              className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-amber-300 hover:shadow-lg hover:-translate-y-1"
+              backgroundColor="#ffffff"
+              borderRadius={16}
+              glowColor="40 80 50"
+              colors={["#f59e0b", "#f97316", "#ef4444"]}
+              edgeSensitivity={30}
+              glowRadius={30}
+              glowIntensity={1.0}
             >
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  {label}
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    {label}
+                  </p>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                      status === "Açık"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {status}
+                  </span>
+                </div>
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+                  {value}
                 </p>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                    status === "Açık"
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  {status}
-                </span>
               </div>
-              <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
-                {value}
-              </p>
-            </div>
+            </BorderGlow>
           ))}
         </div>
       </div>
