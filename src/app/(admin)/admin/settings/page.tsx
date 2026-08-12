@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ResourcePage } from "@/components/management/resource-page";
 import { FolderTree, Tag, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ShinyText } from "@/components/ui/shiny-text";
 
 type SettingsTab = "categories" | "transaction-types";
 
@@ -17,7 +18,7 @@ export default function SettingsPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
             <SettingsIcon className="size-6 text-emerald-600" />
-            Sistem Ayarları & Tanımlamaları
+            <ShinyText text="Sistem Ayarları & Tanımlamaları" speed={7} />
           </h1>
           <p className="text-sm text-muted-foreground">
             Optik mağaza stok kategorilerini, satış ve işlem türlerini buradan yönetin.

@@ -144,7 +144,7 @@
   }
 }
 
-/* ── React Bits Border Glow Animations ── */
+/* ── React Bits Animations ── */
 @keyframes border-glow-spin {
   0% {
     transform: rotate(0deg);
@@ -156,6 +156,19 @@
 
 .animate-border-glow {
   animation: border-glow-spin 4s linear infinite;
+}
+
+@keyframes shiny-text {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.animate-shiny-text {
+  animation: shiny-text 5s linear infinite;
 }
 
 /* ── Sidebar scrollbar styling ── */
