@@ -66,30 +66,57 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Fetch live backend data when opened
+  // Debounced Live Backend Search when user types query
   useEffect(() => {
     if (!open) return;
-    async function loadLiveData() {
+    const trimmed = query.trim();
+
+    // If query is empty or less than 2 chars, clear customer/item search to avoid loading 100k items
+    if (trimmed.length < 2) {
+      setCustomers([]);
+      setInventory([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
       setLoadingData(true);
       try {
+        const searchParam = encodeURIComponent(trimmed);
         const [custRes, invRes] = await Promise.allSettled([
-          apiGet<any>("/api/v1/sales/customers"),
-          apiGet<any>("/api/v1/admin/inventory/items"),
+          apiGet<any>(`/api/v1/sales/customers?search=${searchParam}&size=8`),
+          apiGet<any>(`/api/v1/admin/inventory/items?search=${searchParam}&size=8`),
         ]);
+
         if (custRes.status === "fulfilled") {
-          setCustomers(normalizeList(custRes.value) as unknown as CustomerRecord[]);
+          const list = normalizeList(custRes.value) as unknown as CustomerRecord[];
+          // Client-side fallback filter & slice to max 8 items for performance
+          const filtered = list.filter((c) =>
+            `${c.firstName} ${c.lastName} ${c.phone || ""} ${c.email || ""}`
+              .toLowerCase()
+              .includes(trimmed.toLowerCase())
+          ).slice(0, 8);
+          setCustomers(filtered);
         }
+
         if (invRes.status === "fulfilled") {
-          setInventory(normalizeList(invRes.value) as unknown as InventoryItemRecord[]);
+          const list = normalizeList(invRes.value) as unknown as InventoryItemRecord[];
+          // Client-side fallback filter & slice to max 8 items for performance
+          const filtered = list.filter((item) =>
+            `${item.name} ${item.sku} ${item.category || ""}`
+              .toLowerCase()
+              .includes(trimmed.toLowerCase())
+          ).slice(0, 8);
+          setInventory(filtered);
         }
       } catch {
-        // Ignore errors
+        // Ignore search errors
       } finally {
         setLoadingData(false);
       }
-    }
-    loadLiveData();
-  }, [open]);
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [open, query]);
 
   const navCommands: NavCommand[] = [
     {
@@ -188,19 +215,15 @@ export function CommandPalette() {
     }));
   }, [inventory, router]);
 
-  const allCommands = useMemo(() => {
-    return [...navCommands, ...customerCommands, ...inventoryCommands];
-  }, [customerCommands, inventoryCommands]);
-
-  const filteredCommands = useMemo(() => {
+  const filteredNavCommands = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return allCommands;
-    return allCommands.filter(
-      (cmd) =>
-        cmd.title.toLowerCase().includes(q) ||
-        (cmd.subtitle && cmd.subtitle.toLowerCase().includes(q))
-    );
-  }, [allCommands, query]);
+    if (!q) return navCommands;
+    return navCommands.filter((cmd) => cmd.title.toLowerCase().includes(q));
+  }, [query, navCommands]);
+
+  const allCommands = useMemo(() => {
+    return [...filteredNavCommands, ...customerCommands, ...inventoryCommands];
+  }, [filteredNavCommands, customerCommands, inventoryCommands]);
 
   const handleSelect = (cmd: NavCommand) => {
     setOpen(false);
@@ -230,14 +253,14 @@ export function CommandPalette() {
             <Search className="mr-3 h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <input
               type="text"
-              placeholder="Ürün SKU'su, Ürün Adı, Müşteri Adı/Tel veya Sayfa arayın..."
+              placeholder="Aramak için en az 2 harf yazın (Örn: Ahmet, OPT-102, Lens)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               autoFocus
             />
             {loadingData ? (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
+              <Loader2 className="h-4 w-4 animate-spin text-emerald-600 mr-2" />
             ) : null}
             <button
               type="button"
@@ -250,13 +273,13 @@ export function CommandPalette() {
 
           {/* Commands & Search Results List */}
           <div className="max-h-96 overflow-y-auto p-2 space-y-1">
-            {filteredCommands.length === 0 ? (
+            {allCommands.length === 0 ? (
               <div className="p-8 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
                 <Search className="h-8 w-8 opacity-40 text-emerald-600" />
                 Aradığınız kriterlere uygun ürün, müşteri veya sayfa bulunamadı.
               </div>
             ) : (
-              filteredCommands.map((cmd) => {
+              allCommands.map((cmd) => {
                 const Icon = cmd.icon;
                 return (
                   <button
@@ -285,7 +308,11 @@ export function CommandPalette() {
           {/* Footer Helper */}
           <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2 text-[11px] text-muted-foreground">
             <span>Seçmek için <kbd className="font-semibold">Click / Enter</kbd></span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Canlı Ürün & Müşteri Arama Active</span>
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              {query.trim().length >= 2
+                ? `Debounced Server Search Active (${customers.length} Müşteri, ${inventory.length} Ürün)`
+                : "Navigasyon & Hızlı Komutlar"}
+            </span>
           </div>
         </DialogContent>
       </Dialog>
