@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ResourcePage } from "@/components/management/resource-page";
 import { apiGet, apiPost, normalizeList, translateEnum } from "@/lib/management-api";
 import { Button } from "@/components/ui/button";
+import { BorderGlowButton } from "@/components/ui/border-glow-button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag, Receipt } from "lucide-react";
@@ -188,13 +189,13 @@ export default function AdminTransactionsPage() {
             Kayıtlı müşterilere, tanımlı satış türlerine ve envanter ürünlerine göre güvenle satış gerçekleştirin.
           </p>
         </div>
-        <Button
+        <BorderGlowButton
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+          glowColor="emerald"
         >
           <ShoppingCart className="h-4 w-4" />
           + Yeni Satış Kaydı
-        </Button>
+        </BorderGlowButton>
       </div>
 
       <ResourcePage

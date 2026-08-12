@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BorderGlowButton } from "@/components/ui/border-glow-button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -281,10 +282,10 @@ export function ResourcePage({
       )}
 
       {!hideInlineForm && fields.length > 0 && createPath && (
-        <form onSubmit={submit} className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <form onSubmit={submit} className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-card p-5 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-3 border-border/50">
             <div>
-              <h2 className="text-base font-semibold">{selected ? "Kaydı Güncelle" : "Yeni Kayıt"}</h2>
+              <h2 className="text-base font-semibold tracking-tight">{selected ? "Kaydı Güncelle" : "Yeni Kayıt"}</h2>
               <p className="text-xs text-muted-foreground">
                 Zorunlu alanları tamamlayıp kaydı güvenle oluşturun veya güncelleyin.
               </p>
@@ -296,13 +297,13 @@ export function ResourcePage({
               </Button>
             )}
           </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {fields.map((field) => (
               <label key={field.name} className="space-y-1.5 text-sm">
-                <span className="font-medium">{field.label}</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200 text-xs">{field.label} {field.required && "*"}</span>
                 {field.type === "textarea" ? (
                   <textarea
-                    className="min-h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="min-h-20 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/60 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-500/30 transition-all placeholder:text-muted-foreground/60"
                     placeholder={field.placeholder}
                     value={String(form[field.name] ?? "")}
                     required={field.required}
@@ -310,7 +311,7 @@ export function ResourcePage({
                   />
                 ) : field.type === "select" ? (
                   <select
-                    className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/60 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-500/30 transition-all"
                     value={String(form[field.name] ?? "")}
                     required={field.required}
                     onChange={(event) => setForm((current) => ({ ...current, [field.name]: event.target.value }))}
@@ -328,6 +329,7 @@ export function ResourcePage({
                     placeholder={field.placeholder}
                     value={String(form[field.name] ?? "")}
                     required={field.required}
+                    className="h-10 border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/60 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-500/30 transition-all"
                     onChange={(event) => {
                       const value =
                         field.type === "number" && event.target.value !== ""
@@ -340,11 +342,11 @@ export function ResourcePage({
               </label>
             ))}
           </div>
-          <div className="mt-4">
-            <Button type="submit" disabled={saving || (Boolean(selectedId) && !updatePath)}>
-              {saving ? <Loader2 className="animate-spin" /> : selected ? <Save /> : <Plus />}
-              {selected ? "Güncelle" : "Kaydet"}
-            </Button>
+          <div className="mt-5 flex justify-end">
+            <BorderGlowButton type="submit" disabled={saving || (Boolean(selectedId) && !updatePath)}>
+              {saving ? <Loader2 className="animate-spin size-4" /> : selected ? <Save className="size-4" /> : <Plus className="size-4" />}
+              {selected ? "Kaydı Güncelle" : "Kaydı Oluştur"}
+            </BorderGlowButton>
           </div>
         </form>
       )}
