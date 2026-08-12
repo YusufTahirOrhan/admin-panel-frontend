@@ -261,9 +261,10 @@ export function GsapHero({
                 colors={stat.colors}
                 edgeSensitivity={35}
                 glowRadius={30}
+                className="group transition-all duration-300 hover:-translate-y-1.5"
               >
                 <div className="px-4 py-4 text-center">
-                  <div className="text-2xl font-bold text-white">
+                  <div className="text-2xl font-bold text-white transition-transform duration-300 group-hover:scale-110">
                     <span ref={stat.ref}>0</span>
                     <span className="text-teal-400">+</span>
                   </div>
@@ -340,7 +341,7 @@ export function GsapHero({
 }
 
 // ==========================================
-// 2. FLUID OPTICAL TECH SHOWCASE WITH BORDERGLOW
+// 2. FLUID OPTICAL TECH SHOWCASE WITH BORDERGLOW & HOVER LIFT
 // ==========================================
 export function GsapPinnedShowcase() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -421,13 +422,14 @@ export function GsapPinnedShowcase() {
               glowRadius={35}
               glowIntensity={1.2}
               coneSpread={25}
+              className="group transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
             >
               <div className="p-8">
                 <span className={`inline-block rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${feat.badgeColor}`}>
                   {feat.tag}
                 </span>
 
-                <h3 className="mt-5 text-xl font-bold text-white">{feat.title}</h3>
+                <h3 className="mt-5 text-xl font-bold text-white transition-colors group-hover:text-teal-300">{feat.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-300">{feat.desc}</p>
               </div>
             </BorderGlow>
@@ -439,7 +441,7 @@ export function GsapPinnedShowcase() {
 }
 
 // ==========================================
-// 3. SERVICES SECTION GSAP COMPONENT WITH BORDERGLOW
+// 3. SERVICES SECTION GSAP COMPONENT WITH BORDERGLOW & FLOAT LIFT
 // ==========================================
 interface GsapServicesProps {
   title: string;
@@ -529,14 +531,15 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
               edgeSensitivity={30}
               glowRadius={30}
               glowIntensity={1.0}
+              className="group transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
             >
               <div className="p-6">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-slate-900">{item}</h3>
+                <h3 className="font-bold text-slate-900 transition-colors group-hover:text-teal-700">{item}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
                 </p>
@@ -550,7 +553,7 @@ export function GsapServices({ title, subtitle, items }: GsapServicesProps) {
 }
 
 // ==========================================
-// 4. HIGHLIGHTS / FEATURED PRODUCTS GSAP COMPONENT WITH BORDERGLOW
+// 4. HIGHLIGHTS / FEATURED PRODUCTS GSAP COMPONENT WITH BORDERGLOW & LIFT
 // ==========================================
 interface GsapProductsProps {
   title: string;
@@ -610,20 +613,6 @@ export function GsapProducts({ title, subtitle, items }: GsapProductsProps) {
     { scope: sectionRef }
   );
 
-  const handleCardMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    const arrow = e.currentTarget.querySelector(".cta-arrow");
-    if (arrow) {
-      gsap.to(arrow, { x: 5, duration: 0.3, ease: "power1.out" });
-    }
-  };
-
-  const handleCardMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    const arrow = e.currentTarget.querySelector(".cta-arrow");
-    if (arrow) {
-      gsap.to(arrow, { x: 0, duration: 0.3, ease: "power1.out" });
-    }
-  };
-
   return (
     <section
       ref={sectionRef}
@@ -654,19 +643,16 @@ export function GsapProducts({ title, subtitle, items }: GsapProductsProps) {
               edgeSensitivity={30}
               glowRadius={30}
               glowIntensity={1.0}
+              className="group transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
             >
-              <div
-                onMouseEnter={handleCardMouseEnter}
-                onMouseLeave={handleCardMouseLeave}
-                className="p-6"
-              >
-                <h3 className="text-lg font-bold text-slate-900">{item}</h3>
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-slate-900 transition-colors group-hover:text-indigo-600">{item}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
                 </p>
                 <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
                   <span>Detayları Gör</span>
-                  <span className="cta-arrow">→</span>
+                  <span className="cta-arrow transition-transform duration-300 group-hover:translate-x-1.5">→</span>
                 </div>
               </div>
             </BorderGlow>
@@ -896,7 +882,7 @@ export function GsapCta({
 }
 
 // ==========================================
-// 7. WORKING HOURS GSAP COMPONENT WITH BORDERGLOW
+// 7. WORKING HOURS GSAP COMPONENT WITH BORDERGLOW & LIFT
 // ==========================================
 interface GsapHoursProps {
   title: string;
@@ -1005,6 +991,7 @@ export function GsapHours({
               edgeSensitivity={30}
               glowRadius={30}
               glowIntensity={1.0}
+              className="group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between">
@@ -1012,7 +999,7 @@ export function GsapHours({
                     {label}
                   </p>
                   <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold transition-transform duration-300 group-hover:scale-105 ${
                       status === "Açık"
                         ? "bg-emerald-50 text-emerald-600"
                         : "bg-slate-100 text-slate-500"
