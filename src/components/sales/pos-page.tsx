@@ -155,32 +155,38 @@ export function PosPage() {
     void loadInitialData();
   }, [loadProducts, loadTransactions]);
 
+  const loadCustomers = useCallback(async (needle: string = "") => {
+    try {
+      const url = needle.trim().length >= 2 
+        ? `/api/v1/sales/customers?q=${encodeURIComponent(needle.trim())}`
+        : `/api/v1/sales/customers?size=50`;
+      const data = await apiGet<unknown>(url);
+      setCustomers(
+        normalizeList(data)
+          .map((record) => ({
+            id: recordString(record, "id"),
+            firstName: recordString(record, "firstName"),
+            lastName: recordString(record, "lastName"),
+            phone: recordString(record, "phone"),
+          }))
+          .filter((customer) => customer.id),
+      );
+    } catch {
+      setCustomers([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCustomers("");
+  }, [loadCustomers]);
+
   useEffect(() => {
     const needle = customerQuery.trim();
-    if (needle.length < 2) {
-      return;
-    }
-
-    const timer = window.setTimeout(async () => {
-      try {
-        const data = await apiGet<unknown>(`/api/v1/sales/customers?q=${encodeURIComponent(needle)}`);
-        setCustomers(
-          normalizeList(data)
-            .map((record) => ({
-              id: recordString(record, "id"),
-              firstName: recordString(record, "firstName"),
-              lastName: recordString(record, "lastName"),
-              phone: recordString(record, "phone"),
-            }))
-            .filter((customer) => customer.id),
-        );
-      } catch {
-        setCustomers([]);
-      }
-    }, 250);
-
+    const timer = window.setTimeout(() => {
+      void loadCustomers(needle);
+    }, 200);
     return () => window.clearTimeout(timer);
-  }, [customerQuery]);
+  }, [customerQuery, loadCustomers]);
 
   const filteredProducts = useMemo(() => {
     const needle = query.trim().toLowerCase();
