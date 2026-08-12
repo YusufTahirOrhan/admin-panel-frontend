@@ -5,6 +5,8 @@ import { ResourcePage } from "@/components/management/resource-page";
 import { apiGet } from "@/lib/management-api";
 import { Settings as SettingsIcon, Package } from "lucide-react";
 import Link from "next/link";
+import { ShinyText } from "@/components/ui/shiny-text";
+import { BlurText } from "@/components/ui/blur-text";
 
 interface Category {
   id: string;
@@ -56,10 +58,10 @@ export default function InventoryPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
             <Package className="size-6 text-emerald-600" />
-            Envanter & Stok Yönetimi
+            <ShinyText text="Envanter & Stok Yönetimi" speed={6} />
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Stoktaki optik ürünleri ekleyin, stok miktarlarını ve minimum uyarı eşiklerini düzenleyin.
+            <BlurText text="Stoktaki optik ürünleri ekleyin, stok miktarlarını ve minimum uyarı eşiklerini düzenleyin." delay={30} animateBy="words" />
           </p>
         </div>
         <Link
