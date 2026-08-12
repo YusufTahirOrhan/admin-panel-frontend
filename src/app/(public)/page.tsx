@@ -1,5 +1,6 @@
 import Image from "next/image";
 import BrandShowcase, { type BrandShowcaseItem } from "@/components/public/brand-showcase";
+import { AnimatedHero, AnimatedSectionTitle } from "@/components/public/animated-sections";
 import type { PageBlock, SitePage } from "@/lib/management-api";
 
 export const dynamic = "force-dynamic";
@@ -330,7 +331,6 @@ function renderBlock(block: PageBlock) {
   const content = block.content;
   switch (block.type) {
     case "hero": {
-      const highlights = listOrFallback(content.highlights, ["Optik cam", "Çerçeve", "Bakım"]);
       const primaryButtonLabel = text(content, "primaryButtonLabel");
       const primaryButtonHref = text(content, "primaryButtonHref");
       const secondaryButtonLabel = text(content, "secondaryButtonLabel", "Koleksiyonları İncele");
@@ -339,65 +339,30 @@ function renderBlock(block: PageBlock) {
       const showSecondaryButton = isPublicCtaAllowed(secondaryButtonLabel, secondaryButtonHref || "#services");
 
       return (
-        <section key={block.order} className="bg-slate-950 text-white">
-          <div className="mx-auto grid min-h-[72vh] max-w-6xl content-center gap-10 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr]">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-teal-300">
-                {text(content, "eyebrow", "Optik mağazası")}
-              </p>
-              <h1 className="mt-5 max-w-3xl text-5xl font-bold tracking-tight sm:text-6xl">
-                {text(content, "title", "OptiMaxx Optik")}
-              </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-                {text(content, "subtitle")}
-              </p>
-              {(showPrimaryButton || showSecondaryButton) && (
-                <div className="mt-8 flex flex-wrap gap-3">
-                  {showPrimaryButton ? (
-                    <a
-                      href={primaryButtonHref || "#contact"}
-                      className="inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-slate-100"
-                    >
-                      {primaryButtonLabel}
-                    </a>
-                  ) : null}
-                  {showSecondaryButton ? (
-                    <a
-                      href={secondaryButtonHref || "#services"}
-                      className="inline-flex h-11 items-center justify-center rounded-lg border border-white/15 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-                    >
-                      {secondaryButtonLabel}
-                    </a>
-                  ) : null}
-                </div>
-              )}
-              <div className="mt-10 grid max-w-xl grid-cols-3 gap-3 text-center text-sm">
-                {highlights.slice(0, 3).map((label) => (
-                  <div key={label} className="rounded-lg border border-white/10 bg-white/5 px-3 py-4">
-                    <span className="font-semibold text-white">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="overflow-hidden rounded-lg border border-white/10 bg-white/5 p-3">
-              {renderImage(text(content, "imageUrl"), "aspect-[4/3] w-full rounded-lg object-cover") ?? (
-                <div className="aspect-[4/3] rounded-lg bg-[radial-gradient(circle_at_30%_20%,#5eead4,transparent_28%),linear-gradient(135deg,#0f172a,#1e293b)]" />
-              )}
-            </div>
-          </div>
-        </section>
+        <AnimatedHero
+          key={block.order}
+          eyebrow={text(content, "eyebrow", "Mahallenizin modern optik mağazası")}
+          title={text(content, "title", "OptiMaxx Optik")}
+          subtitle={text(content, "subtitle", "Göz sağlığınız, net görüş ve stiliniz için modern optik çözümler.")}
+          highlights={listOrFallback(content.highlights, ["Optik cam", "Çerçeve", "Bakım"])}
+          imageUrl={text(content, "imageUrl")}
+          primaryButton={showPrimaryButton ? { label: primaryButtonLabel, href: primaryButtonHref || "#contact" } : null}
+          secondaryButton={showSecondaryButton ? { label: secondaryButtonLabel, href: secondaryButtonHref || "#services" } : null}
+        />
       );
     }
     case "services":
       return (
-        <section id="services" key={block.order} className="border-b bg-white px-6 py-16">
+        <section id="services" key={block.order} className="border-b bg-white px-6 py-20">
           <div className="mx-auto max-w-6xl">
-            <h2 className="text-3xl font-bold tracking-tight">{text(content, "title", "Hizmetlerimiz")}</h2>
-            <p className="mt-3 max-w-2xl text-slate-600">{text(content, "subtitle")}</p>
-            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <AnimatedSectionTitle title={text(content, "title", "Hizmetlerimiz")} subtitle={text(content, "subtitle")} />
+            <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
               {asList(content.items).map((item) => (
-                <div key={item} className="rounded-lg border p-5 shadow-sm">
-                  <h3 className="font-semibold">{item}</h3>
+                <div key={item} className="group rounded-2xl border border-slate-200 p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-teal-200 hover:-translate-y-1 hover:bg-gradient-to-br hover:from-teal-50/50 hover:to-white">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md transition-transform duration-300 group-hover:scale-110">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <h3 className="font-bold text-slate-900">{item}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-500">
                     Mağazada ihtiyaçlarınıza göre yönlendirme ve ürün desteği sunulur.
                   </p>
@@ -409,17 +374,26 @@ function renderBlock(block: PageBlock) {
       );
     case "featuredProducts":
       return (
-        <section id="products" key={block.order} className="border-b bg-slate-50 px-6 py-16">
+        <section id="products" key={block.order} className="border-b bg-slate-50 px-6 py-20">
           <div className="mx-auto max-w-6xl">
-            <h2 className="text-3xl font-bold tracking-tight">{text(content, "title", "Öne Çıkanlar")}</h2>
-            <p className="mt-3 max-w-2xl text-slate-600">{text(content, "subtitle")}</p>
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <AnimatedSectionTitle
+              title={text(content, "title", "Öne Çıkanlar")}
+              subtitle={text(content, "subtitle")}
+              colors={["#0ea5e9", "#8b5cf6", "#ec4899", "#0ea5e9"]}
+            />
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
               {asList(content.items).map((item) => (
-                <div key={item} className="rounded-lg border bg-white p-5 shadow-sm">
-                  <h3 className="font-semibold">{item}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
-                  </p>
+                <div key={item} className="group relative overflow-hidden rounded-2xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="relative">
+                    <h3 className="text-lg font-bold text-slate-900">{item}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-500">
+                      Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
+                    </p>
+                    <div className="mt-4 inline-flex items-center text-xs font-bold text-indigo-600 transition-colors group-hover:text-indigo-700">
+                      Detayları Gör →
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -438,16 +412,19 @@ function renderBlock(block: PageBlock) {
       );
     case "about":
       return (
-        <section key={block.order} className="border-b bg-white px-6 py-16">
-          <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-2">
+        <section key={block.order} className="border-b bg-white px-6 py-20">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">{text(content, "title", "OptiMaxx")}</h2>
-              <p className="mt-4 text-base leading-7 text-slate-600">
+              <AnimatedSectionTitle
+                title={text(content, "title", "OptiMaxx")}
+                colors={["#0f766e", "#059669", "#10b981", "#0f766e"]}
+              />
+              <p className="mt-5 text-base leading-7 text-slate-600">
                 {text(content, block.type === "about" ? "body" : "subtitle")}
               </p>
             </div>
-            {renderImage(text(content, "imageUrl"), "aspect-video w-full rounded-lg object-cover shadow-sm") ?? (
-              <div className="aspect-video rounded-lg border bg-slate-100" />
+            {renderImage(text(content, "imageUrl"), "aspect-video w-full rounded-2xl object-cover shadow-lg") ?? (
+              <div className="aspect-video rounded-2xl border bg-gradient-to-br from-slate-100 to-slate-50" />
             )}
           </div>
         </section>
@@ -500,28 +477,29 @@ function renderBlock(block: PageBlock) {
     }
     case "hours":
       return (
-        <section id="hours" key={block.order} className="border-b bg-slate-50 px-6 py-14">
+        <section id="hours" key={block.order} className="border-b bg-slate-50 px-6 py-20">
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">{text(content, "title", "Çalışma Saatleri")}</h2>
-                <p className="mt-3 max-w-2xl text-slate-600">{text(content, "subtitle")}</p>
-              </div>
+              <AnimatedSectionTitle
+                title={text(content, "title", "Çalışma Saatleri")}
+                subtitle={text(content, "subtitle")}
+                colors={["#f59e0b", "#f97316", "#ef4444", "#f59e0b"]}
+              />
               {text(content, "note") ? (
-                <p className="max-w-sm rounded-lg border bg-white px-4 py-3 text-sm leading-6 text-slate-500">
+                <p className="max-w-sm rounded-xl border bg-white px-4 py-3 text-sm leading-6 text-slate-500 shadow-sm">
                   {text(content, "note")}
                 </p>
               ) : null}
             </div>
-            <div className="mt-8 grid gap-3 md:grid-cols-3">
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
               {[
                 ["Hafta içi", text(content, "weekdays")],
                 ["Cumartesi", text(content, "saturday")],
                 ["Pazar", text(content, "sunday")],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-lg border bg-white p-5 shadow-sm">
-                  <p className="text-sm font-medium text-slate-500">{label}</p>
-                  <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">{value}</p>
+                <div key={label} className="group rounded-2xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                  <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
+                  <p className="mt-3 text-3xl font-bold tracking-tight text-slate-950">{value}</p>
                 </div>
               ))}
             </div>
