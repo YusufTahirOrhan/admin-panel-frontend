@@ -6,7 +6,6 @@ import { apiGet, apiPost, normalizeList, translateEnum } from "@/lib/management-
 import { Button } from "@/components/ui/button";
 import { BorderGlowButton } from "@/components/ui/border-glow-button";
 import { ShinyText } from "@/components/ui/shiny-text";
-import { Magnet } from "@/components/ui/magnet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag, Receipt } from "lucide-react";
@@ -191,15 +190,13 @@ export default function AdminTransactionsPage() {
             Kayıtlı müşterilere, tanımlı satış türlerine ve envanter ürünlerine göre güvenle satış gerçekleştirin.
           </p>
         </div>
-        <Magnet padding={50} magnetStrength={3.5}>
-          <BorderGlowButton
-            onClick={() => setModalOpen(true)}
-            glowColor="emerald"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            + Yeni Satış Kaydı
-          </BorderGlowButton>
-        </Magnet>
+        <BorderGlowButton
+          onClick={() => setModalOpen(true)}
+          glowColor="emerald"
+        >
+          <ShoppingCart className="h-4 w-4" />
+          + Yeni Satış Kaydı
+        </BorderGlowButton>
       </div>
 
       <ResourcePage

@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { BorderGlowButton } from "@/components/ui/border-glow-button";
 import { ShinyText } from "@/components/ui/shiny-text";
-import { Magnet } from "@/components/ui/magnet";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
