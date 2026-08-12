@@ -650,10 +650,6 @@ export function GsapProducts({ title, subtitle, items }: GsapProductsProps) {
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   Stok ve model seçenekleri mağaza içinde güncel olarak paylaşılır.
                 </p>
-                <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
-                  <span>Detayları Gör</span>
-                  <span className="cta-arrow transition-transform duration-300 group-hover:translate-x-1.5">→</span>
-                </div>
               </div>
             </BorderGlow>
           ))}
