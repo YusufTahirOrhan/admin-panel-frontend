@@ -1,12 +1,13 @@
 "use client";
 
 import { BreadcrumbNav } from "@/components/layout/breadcrumb-nav";
-import { NotificationBell } from "@/components/layout/notification-bell";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { CommandPalette } from "@/components/admin/command-palette";
+import { NotificationCenter } from "@/components/admin/notification-center";
 
 /**
  * Sticky header for the admin portal content area.
- * Contains sidebar trigger + breadcrumb on left, actions on right.
+ * Contains sidebar trigger + breadcrumb on left, CommandPalette + NotificationCenter + ThemeToggle on right.
  * Glassmorphism backdrop-blur style for premium feel.
  */
 export function AdminHeader() {
@@ -19,9 +20,10 @@ export function AdminHeader() {
       <BreadcrumbNav showSidebarTrigger={true} />
 
       {/* Right: action buttons */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <CommandPalette />
+        <NotificationCenter />
         <ThemeToggle />
-        <NotificationBell count={3} />
       </div>
     </header>
   );

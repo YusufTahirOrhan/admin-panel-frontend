@@ -16,6 +16,7 @@ import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { ShinyText } from "@/components/ui/shiny-text";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { BlurText } from "@/components/ui/blur-text";
+import { AnalyticsCharts } from "@/components/admin/analytics-charts";
 
 interface RevenueSummary {
   totalRevenue: number;
@@ -217,6 +218,9 @@ export default function AdminDashboardPage() {
           );
         })}
       </div>
+
+      {/* Visual Analytics Charts (Recharts Area & Donut Charts) */}
+      <AnalyticsCharts />
 
       <div className="grid gap-4 lg:grid-cols-7">
         <SpotlightCard className="lg:col-span-4 p-6" spotlightColor="rgba(16, 185, 129, 0.08)">
