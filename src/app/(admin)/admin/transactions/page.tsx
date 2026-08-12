@@ -6,7 +6,7 @@ import { apiGet, apiPost, normalizeList } from "@/lib/management-api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Plus, UserCheck, PackageCheck, AlertCircle } from "lucide-react";
+import { ShoppingCart, UserCheck, PackageCheck, AlertCircle } from "lucide-react";
 
 interface Customer {
   id: string;
