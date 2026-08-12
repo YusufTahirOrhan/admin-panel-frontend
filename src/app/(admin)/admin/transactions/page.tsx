@@ -5,6 +5,8 @@ import { ResourcePage } from "@/components/management/resource-page";
 import { apiGet, apiPost, normalizeList, translateEnum } from "@/lib/management-api";
 import { Button } from "@/components/ui/button";
 import { BorderGlowButton } from "@/components/ui/border-glow-button";
+import { ShinyText } from "@/components/ui/shiny-text";
+import { Magnet } from "@/components/ui/magnet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag, Receipt } from "lucide-react";
@@ -183,19 +185,21 @@ export default function AdminTransactionsPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
             <Receipt className="size-6 text-emerald-600" />
-            Satış İşlemleri & Fişler
+            <ShinyText text="Satış İşlemleri & Fişler" speed={6} />
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Kayıtlı müşterilere, tanımlı satış türlerine ve envanter ürünlerine göre güvenle satış gerçekleştirin.
           </p>
         </div>
-        <BorderGlowButton
-          onClick={() => setModalOpen(true)}
-          glowColor="emerald"
-        >
-          <ShoppingCart className="h-4 w-4" />
-          + Yeni Satış Kaydı
-        </BorderGlowButton>
+        <Magnet padding={50} magnetStrength={3.5}>
+          <BorderGlowButton
+            onClick={() => setModalOpen(true)}
+            glowColor="emerald"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            + Yeni Satış Kaydı
+          </BorderGlowButton>
+        </Magnet>
       </div>
 
       <ResourcePage

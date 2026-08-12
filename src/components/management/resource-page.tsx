@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BorderGlowButton } from "@/components/ui/border-glow-button";
+import { ShinyText } from "@/components/ui/shiny-text";
+import { Magnet } from "@/components/ui/magnet";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -262,7 +264,9 @@ export function ResourcePage({
       {!hideHeader && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              <ShinyText text={title} speed={6} />
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           </div>
           <Button type="button" variant="outline" onClick={() => void load()} disabled={loading}>
