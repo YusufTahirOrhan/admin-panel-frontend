@@ -5,6 +5,7 @@ import { ResourcePage } from "@/components/management/resource-page";
 import { FolderTree, Tag, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ShinyText } from "@/components/ui/shiny-text";
+import { BlurText } from "@/components/ui/blur-text";
 
 type SettingsTab = "categories" | "transaction-types";
 
@@ -21,7 +22,7 @@ export default function SettingsPage() {
             <ShinyText text="Sistem Ayarları & Tanımlamaları" speed={7} />
           </h1>
           <p className="text-sm text-muted-foreground">
-            Optik mağaza stok kategorilerini, satış ve işlem türlerini buradan yönetin.
+            <BlurText text="Optik mağaza stok kategorilerini, satış ve işlem türlerini buradan yönetin." delay={30} animateBy="words" />
           </p>
         </div>
       </div>

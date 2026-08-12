@@ -6,6 +6,7 @@ import { apiGet, apiPost, normalizeList, translateEnum } from "@/lib/management-
 import { Button } from "@/components/ui/button";
 import { BorderGlowButton } from "@/components/ui/border-glow-button";
 import { ShinyText } from "@/components/ui/shiny-text";
+import { BlurText } from "@/components/ui/blur-text";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag, Receipt } from "lucide-react";
@@ -187,7 +188,7 @@ export default function AdminTransactionsPage() {
             <ShinyText text="Satış İşlemleri & Fişler" speed={6} />
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Kayıtlı müşterilere, tanımlı satış türlerine ve envanter ürünlerine göre güvenle satış gerçekleştirin.
+            <BlurText text="Kayıtlı müşterilere, tanımlı satış türlerine ve envanter ürünlerine göre güvenle satış gerçekleştirin." delay={30} animateBy="words" />
           </p>
         </div>
         <BorderGlowButton

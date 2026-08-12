@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { BorderGlowButton } from "@/components/ui/border-glow-button";
 import { ShinyText } from "@/components/ui/shiny-text";
+import { BlurText } from "@/components/ui/blur-text";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -266,7 +267,9 @@ export function ResourcePage({
             <h1 className="text-2xl font-bold tracking-tight">
               <ShinyText text={title} speed={6} />
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              <BlurText text={description} delay={30} animateBy="words" />
+            </p>
           </div>
           <Button type="button" variant="outline" onClick={() => void load()} disabled={loading}>
             <RefreshCw className={cn(loading && "animate-spin")} />
