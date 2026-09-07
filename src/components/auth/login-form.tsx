@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2, LogIn, Mail, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, LogIn, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth-schemas';
 import { authService } from '@/lib/auth-service';
@@ -34,6 +35,8 @@ export default function LoginForm() {
   // Forgot password state
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+  const forgotPending = useRef(false);
+  const forgotTrigger = useRef<HTMLButtonElement>(null);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
   const [forgotError, setForgotError] = useState<string | null>(null);
@@ -79,10 +82,12 @@ export default function LoginForm() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (forgotPending.current) return;
     if (!forgotEmail.trim()) {
       setForgotError('Lütfen e-posta adresinizi giriniz.');
       return;
     }
+    forgotPending.current = true;
     setForgotLoading(true);
     setForgotError(null);
     setForgotSuccess(null);
@@ -90,11 +95,12 @@ export default function LoginForm() {
     try {
       await authService.forgotPassword(forgotEmail.trim());
       setForgotSuccess(
-        'Şifre sıfırlama talimatları e-posta adresinize gönderildi. Lütfen gelen kutunuzu (ve spam klasörünü) kontrol edin.'
+        'Bu adresle kayıtlı bir hesap varsa şifre sıfırlama talimatları gönderilecektir. Gelen kutunuzu ve spam klasörünü kontrol edin.'
       );
     } catch {
       setForgotError('Şifre sıfırlama e-postası gönderilemedi. Lütfen adresi kontrol ediniz.');
     } finally {
+      forgotPending.current = false;
       setForgotLoading(false);
     }
   };
@@ -159,6 +165,7 @@ export default function LoginForm() {
             </label>
             <button
               type="button"
+              ref={forgotTrigger}
               onClick={() => {
                 setForgotError(null);
                 setForgotSuccess(null);
@@ -233,92 +240,19 @@ export default function LoginForm() {
         </button>
       </form>
 
-      {/* ── Forgot Password Modal ── */}
-      {isForgotModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm animate-in fade-in-0 duration-200">
-          <div className="w-full max-w-md rounded-2xl border border-slate-700/80 bg-slate-900 p-6 text-slate-100 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Mail className="h-5 w-5 text-teal-400" />
-                Şifremi Unuttum
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsForgotModalOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {forgotSuccess ? (
-              <div className="space-y-4 text-center py-4">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/20 text-teal-400">
-                  <CheckCircle2 className="h-6 w-6" />
-                </div>
-                <p className="text-sm text-slate-200 leading-relaxed">
-                  {forgotSuccess}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setIsForgotModalOpen(false)}
-                  className="w-full h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-sm transition-colors cursor-pointer"
-                >
-                  Giriş Ekranına Dön
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Hesabınıza kayıtlı e-posta adresinizi giriniz. Size şifrenizi yenilemeniz için güvenli bir bağlantı göndereceğiz.
-                </p>
-
-                {forgotError && (
-                  <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-400">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    {forgotError}
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-medium text-slate-300">
-                    E-posta Adresi
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="ornek@optimaxx.com"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    className={cn(inputBaseClass, 'h-11')}
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsForgotModalOpen(false)}
-                    className="h-10 px-4 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
-                  >
-                    Vazgeç
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={forgotLoading}
-                    className="h-10 px-5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold text-xs transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-                  >
-                    {forgotLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Sıfırlama Bağlantısı Gönder'
-                    )}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      <Dialog open={isForgotModalOpen} onOpenChange={(open) => { if (!forgotLoading) setIsForgotModalOpen(open); }}>
+        <DialogContent finalFocus={forgotTrigger} showCloseButton={!forgotLoading}>
+          <DialogTitle>Şifremi unuttum</DialogTitle>
+          <DialogDescription className="mt-2">Hesabınıza kayıtlı e-posta adresini girin.</DialogDescription>
+          {forgotSuccess ? <div className="mt-5 space-y-4"><p role="status" className="flex items-start gap-2 text-sm leading-6"><CheckCircle2 className="mt-1 size-5 shrink-0 text-teal-700" />{forgotSuccess}</p><button type="button" onClick={() => setIsForgotModalOpen(false)} className="min-h-11 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white">Giriş ekranına dön</button></div> :
+            <form onSubmit={handleForgotPassword} className="mt-5 space-y-4">
+              {forgotError && <p role="alert" className="text-sm text-red-700">{forgotError}</p>}
+              <label htmlFor="forgot-email" className="block text-sm font-medium">E-posta adresi</label>
+              <input id="forgot-email" type="email" autoComplete="email" required value={forgotEmail} onChange={(event) => setForgotEmail(event.target.value)} className="min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-teal-600" />
+              <div className="flex flex-wrap justify-end gap-2"><button type="button" disabled={forgotLoading} onClick={() => setIsForgotModalOpen(false)} className="min-h-11 rounded-lg border px-4 text-sm">Vazgeç</button><button type="submit" disabled={forgotLoading} className="min-h-11 rounded-lg bg-teal-700 px-4 text-sm font-semibold text-white disabled:opacity-60">{forgotLoading ? 'Gönderiliyor…' : 'Sıfırlama bağlantısı gönder'}</button></div>
+            </form>}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -8,7 +8,7 @@ export default function SalesLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SalesHeader />
-      <main className="flex-1 p-3 md:p-4 lg:p-6">{children}</main>
+      <main className="min-w-0 flex-1 p-3 md:p-4 lg:p-6">{children}</main>
     </div>
   );
 }

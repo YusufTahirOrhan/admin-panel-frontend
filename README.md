@@ -21,8 +21,15 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 
 ```bash
 npm run lint
+npm run typecheck
+npm test
 npm run build
 ```
+
+The regression tests use Node.js 22.6+ type stripping and the built-in test runner; no test dependency is required.
+The public homepage uses published CMS content only. A failed request shows a retry state; an empty publication shows an empty state. It no longer substitutes demonstration contact details when the API is unavailable.
+
+See `docs/review/REVIEW.md` for the UI review, verification results, screenshots, and remaining limitations.
 
 ## Implemented Areas
 

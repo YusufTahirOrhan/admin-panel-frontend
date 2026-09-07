@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { FormEvent, MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowDown,
   ArrowUp,
@@ -16,9 +17,9 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BorderGlowButton } from "@/components/ui/border-glow-button";
-import { ShinyText } from "@/components/ui/shiny-text";
-import { BlurText } from "@/components/ui/blur-text";
+
+
+
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -38,6 +39,7 @@ import {
   fieldValue,
   friendlyApiError,
   normalizeList,
+  normalizePageMeta,
 } from "@/lib/management-api";
 import { cn } from "@/lib/utils";
 
@@ -59,6 +61,7 @@ interface ResourcePageProps {
   deletePath?: (id: string) => string;
   detailPath?: (id: string) => string;
   fields?: ResourceField[];
+  updateFields?: ResourceField[];
   columns: ResourceColumn[];
   emptyText?: string;
   hideHeader?: boolean;
@@ -76,6 +79,7 @@ export function ResourcePage({
   deletePath,
   detailPath,
   fields = [],
+  updateFields,
   columns,
   emptyText = "Kayıt bulunamadı.",
   hideHeader = false,
@@ -97,6 +101,12 @@ export function ResourcePage({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [totalRecords, setTotalRecords] = useState<number | null>(null);
+  const [loadedPage, setLoadedPage] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const detailRequest = useRef(0);
+  const mutationPending = useRef(false);
+  const activeFields = selectedId && updateFields ? updateFields : fields;
 
   const selected = useMemo(
     () => items.find((item) => String(item.id) === selectedId),
@@ -114,12 +124,30 @@ export function ResourcePage({
     try {
       const data = await apiGet<unknown>(withDefaultSize(listPath));
       setItems(normalizeList(data));
+      const meta = normalizePageMeta(data);
+      setTotalRecords(meta?.totalElements ?? null);
+      setLoadedPage(meta?.page ?? 0);
     } catch (exception) {
       setError(friendlyApiError(exception, "Veriler alınamadı."));
     } finally {
       setLoading(false);
     }
   }, [listPath]);
+
+  async function loadMore() {
+    if (loadingMore || loading) return;
+    setLoadingMore(true);
+    try {
+      const url = new URL(withDefaultSize(listPath), 'http://localhost');
+      url.searchParams.set('page', String(loadedPage + 1));
+      const data = await apiGet<unknown>(`${url.pathname}${url.search}`);
+      setItems((current) => Array.from(new Map([...current, ...normalizeList(data)].map((item) => [String(item.id), item])).values()));
+      setLoadedPage((current) => current + 1);
+      setTotalRecords(normalizePageMeta(data)?.totalElements ?? null);
+    } catch (exception) {
+      setError(friendlyApiError(exception, 'Diğer kayıtlar alınamadı.'));
+    } finally { setLoadingMore(false); }
+  }
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
@@ -138,7 +166,7 @@ export function ResourcePage({
             .map((item) => fieldValue(item, [column.key]))
             .filter((value) => value !== "-"),
         ),
-      ).slice(0, 20);
+      );
 
       if (values.length > 1 && values.length <= 20) {
         result[column.key] = values;
@@ -186,6 +214,7 @@ export function ResourcePage({
   }
 
   async function openDetail(item: ApiRecord) {
+    const request = ++detailRequest.current;
     const id = getRecordId(item);
     setDetailItem(item);
 
@@ -195,11 +224,12 @@ export function ResourcePage({
 
     setDetailLoading(true);
     try {
-      setDetailItem(await apiGet<ApiRecord>(detailPath(id)));
+      const detail = await apiGet<ApiRecord>(detailPath(id));
+      if (request === detailRequest.current) setDetailItem(detail);
     } catch (exception) {
-      setError(friendlyApiError(exception, "Kayıt detayı alınamadı."));
+      if (request === detailRequest.current) setError(friendlyApiError(exception, "Kayıt detayı alınamadı."));
     } finally {
-      setDetailLoading(false);
+      if (request === detailRequest.current) setDetailLoading(false);
     }
   }
 
@@ -219,12 +249,13 @@ export function ResourcePage({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!createPath) return;
+    if (!createPath || mutationPending.current) return;
+    mutationPending.current = true;
     setSaving(true);
     setError(null);
     try {
       if (selectedId && updatePath) {
-        await apiPatch(updatePath(selectedId), sanitizePayload(form));
+        await apiPatch(updatePath(selectedId), sanitizePayload(updateFields ? Object.fromEntries(updateFields.map((field) => [field.name, form[field.name]])) : form));
       } else {
         await apiPost(createPath, sanitizePayload(form));
       }
@@ -234,15 +265,17 @@ export function ResourcePage({
       setError(friendlyApiError(exception, "Kayıt işlemi başarısız oldu."));
     } finally {
       setSaving(false);
+      mutationPending.current = false;
     }
   }
 
   async function confirmDelete() {
     const id = deleteTarget ? getRecordId(deleteTarget) : null;
-    if (!id || !deletePath) {
+    if (!id || !deletePath || mutationPending.current) {
       return;
     }
 
+    mutationPending.current = true;
     setDeleting(true);
     setError(null);
     try {
@@ -256,19 +289,20 @@ export function ResourcePage({
       setError(friendlyApiError(exception, "Kayıt silinemedi."));
     } finally {
       setDeleting(false);
+      mutationPending.current = false;
     }
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {!hideHeader && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight">
-              <ShinyText text={title} speed={6} />
+              {title}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              <BlurText text={description} delay={30} animateBy="words" />
+              {description}
             </p>
           </div>
           <Button type="button" variant="outline" onClick={() => void load()} disabled={loading}>
@@ -279,7 +313,7 @@ export function ResourcePage({
       )}
 
       {error && (
-        <div className="flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div role="alert" className="flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <span>{error}</span>
           <button type="button" aria-label="Hatayı kapat" onClick={() => setError(null)}>
             <X className="size-4" />
@@ -304,7 +338,7 @@ export function ResourcePage({
             )}
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {fields.map((field) => (
+            {activeFields.map((field) => (
               <label key={field.name} className="space-y-1.5 text-sm">
                 <span className="font-semibold text-slate-700 dark:text-slate-200 text-xs">{field.label} {field.required && "*"}</span>
                 {field.type === "textarea" ? (
@@ -325,7 +359,7 @@ export function ResourcePage({
                     <option value="">Seçiniz</option>
                     {field.options?.map((option) => (
                       <option key={option} value={option}>
-                        {option}
+                        {field.optionLabels?.[option] ?? option}
                       </option>
                     ))}
                   </select>
@@ -349,10 +383,10 @@ export function ResourcePage({
             ))}
           </div>
           <div className="mt-5 flex justify-end">
-            <BorderGlowButton type="submit" disabled={saving || (Boolean(selectedId) && !updatePath)}>
+            <Button type="submit" disabled={saving || (Boolean(selectedId) && !updatePath)}>
               {saving ? <Loader2 className="animate-spin size-4" /> : selected ? <Save className="size-4" /> : <Plus className="size-4" />}
               {selected ? "Kaydı Güncelle" : "Kaydı Oluştur"}
-            </BorderGlowButton>
+            </Button>
           </div>
         </form>
       )}
@@ -364,6 +398,7 @@ export function ResourcePage({
             <Input
               className="pl-8"
               value={searchTerm}
+              aria-label="Kayıtlarda ara"
               placeholder="Kayıtlarda ara..."
               onChange={(event) => {
                 setSearchTerm(event.target.value);
@@ -375,6 +410,7 @@ export function ResourcePage({
             {Object.entries(filterOptions).map(([key, values]) => (
               <select
                 key={key}
+                aria-label={`${columnLabel(visibleColumns, key)} filtresi`}
                 className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm outline-none"
                 value={filters[key] ?? ""}
                 onChange={(event) => {
@@ -392,6 +428,7 @@ export function ResourcePage({
             ))}
             <select
               className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm outline-none"
+              aria-label="Sayfa başına kayıt"
               value={pageSize}
               onChange={(event) => {
                 setPageSize(Number(event.target.value));
@@ -407,12 +444,12 @@ export function ResourcePage({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" role="region" aria-label={`${title} tablosu, yatay kaydırılabilir`} tabIndex={0}>
           <table className="w-full min-w-[760px] table-fixed text-sm">
             <thead className="bg-muted/60 text-left">
               <tr>
                 {visibleColumns.map((column) => (
-                  <th key={column.key} className="px-4 py-3 font-semibold">
+                  <th key={column.key} scope="col" aria-sort={sortKey === column.key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'} className="px-4 py-3 font-semibold">
                     <button
                       type="button"
                       className="inline-flex max-w-full items-center gap-1 truncate"
@@ -524,7 +561,11 @@ export function ResourcePage({
         </div>
       </div>
 
-      <Sheet open={Boolean(detailItem)} onOpenChange={(open) => !open && setDetailItem(null)}>
+      {totalRecords !== null && totalRecords > items.length && <div role="status" className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
+        <p>{totalRecords} kaydın {items.length} tanesi yüklendi. Arama ve filtreler yüklenen kayıtlarda çalışır.</p>
+        <Button variant="outline" disabled={loadingMore || loading} onClick={() => void loadMore()}>{loadingMore ? 'Yükleniyor…' : 'Diğer kayıtları yükle'}</Button>
+      </div>}
+      <Sheet open={Boolean(detailItem)} onOpenChange={(open) => { if (!open) { detailRequest.current++; setDetailItem(null); setDetailLoading(false); } }}>
         <SheetContent className="w-[92vw] overflow-y-auto sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Kayıt Detayı</SheetTitle>
@@ -546,12 +587,12 @@ export function ResourcePage({
       </Sheet>
 
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="w-full max-w-md rounded-lg border bg-card p-5 shadow-lg">
-            <h2 className="text-base font-semibold">Kaydı silmek istiyor musunuz?</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+        <Dialog open onOpenChange={(open) => { if (!open && !deleting) setDeleteTarget(null); }}>
+          <DialogContent showCloseButton={!deleting}>
+            <DialogTitle>Kaydı silmek istiyor musunuz?</DialogTitle>
+            <DialogDescription className="mt-2 text-sm text-muted-foreground">
               Bu işlem seçili kaydı pasifleştirebilir veya silebilir. Devam etmeden önce kaydı kontrol edin.
-            </p>
+            </DialogDescription>
             <div className="mt-4 rounded-lg bg-muted/40 p-3 text-sm">
               {visibleColumns.slice(0, 3).map((column) => (
                 <div key={column.key} className="flex justify-between gap-3 py-1">
@@ -569,8 +610,8 @@ export function ResourcePage({
                 Sil
               </Button>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

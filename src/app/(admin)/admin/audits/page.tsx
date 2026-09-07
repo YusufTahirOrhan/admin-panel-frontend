@@ -9,7 +9,7 @@ export default function AuditsPage() {
       description="Güvenlik ve işlem olaylarını filtreleyin, sıralayın ve detaylarını kontrol edin."
       listPath="/api/v1/admin/audit/events"
       columns={[
-        { key: "eventType", label: "Olay" },
+        { key: "action", label: "Olay" },
         { key: "resourceType", label: "Kaynak" },
         { key: "resourceId", label: "Kaynak ID" },
         { key: "occurredAt", label: "Zaman" },

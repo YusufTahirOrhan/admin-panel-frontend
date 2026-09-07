@@ -1,31 +1,15 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth-store';
 import { authService } from './auth-service';
+import { installAuthRefreshInterceptor } from './auth-interceptors';
 
 export const api = axios.create({
+  timeout: 15000,
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json',
   },
 });
-
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}> = [];
-
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-
-  failedQueue = [];
-};
 
 api.interceptors.request.use(
   (config) => {
@@ -40,7 +24,7 @@ api.interceptors.request.use(
             useAuthStore.getState().setAccessToken(token);
           }
         }
-      } catch (e) {}
+      } catch { /* Storage may be unavailable in private browsing. */ }
     }
 
     if (token) {
@@ -62,50 +46,14 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // If error is 401 or 403 and we haven't retried yet, attempt token refresh
-    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise(function (resolve, reject) {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers['Authorization'] = 'Bearer ' + token;
-            return api(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const newAccessToken = await authService.refresh();
-        useAuthStore.getState().setAccessToken(newAccessToken);
-        
-        api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
-        originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
-        
-        processQueue(null, newAccessToken);
-        return api(originalRequest);
-      } catch (err) {
-        processQueue(err, null);
-        useAuthStore.getState().logout();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
-        return Promise.reject(err);
-      } finally {
-        isRefreshing = false;
-      }
+installAuthRefreshInterceptor(api, {
+  refresh: () => authService.refresh(),
+  getAccessToken: () => useAuthStore.getState().accessToken,
+  setAccessToken: (token) => useAuthStore.getState().setAccessToken(token),
+  onSessionExpired: () => {
+    useAuthStore.getState().logout();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
     }
-
-    return Promise.reject(error);
-  }
-);
+  },
+});

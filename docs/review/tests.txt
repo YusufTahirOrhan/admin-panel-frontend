@@ -1,0 +1,112 @@
+
+> frontend@0.1.0 test
+> node --experimental-strip-types --test tests/*.test.mjs
+
+TAP version 13
+# (node:22932) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/9500203/Desktop/Web%20Project/admin-panel-frontend/src/lib/auth-interceptors.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\9500203\\Desktop\\Web Project\\admin-panel-frontend\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: 403 permission rejection preserves the session
+ok 1 - 403 permission rejection preserves the session
+  ---
+  duration_ms: 4.3659
+  type: 'test'
+  ...
+# Subtest: simultaneous 401 requests share one refresh and retry with the new token
+ok 2 - simultaneous 401 requests share one refresh and retry with the new token
+  ---
+  duration_ms: 6.3336
+  type: 'test'
+  ...
+# Subtest: a retried 401 cannot start an infinite refresh loop
+ok 3 - a retried 401 cannot start an infinite refresh loop
+  ---
+  duration_ms: 0.9284
+  type: 'test'
+  ...
+# Subtest: public and login failures never trigger token refresh
+ok 4 - public and login failures never trigger token refresh
+  ---
+  duration_ms: 1.252
+  type: 'test'
+  ...
+# Subtest: failed shared refresh expires the session once
+ok 5 - failed shared refresh expires the session once
+  ---
+  duration_ms: 4.5484
+  type: 'test'
+  ...
+# (node:21328) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/9500203/Desktop/Web%20Project/admin-panel-frontend/src/lib/public-content.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to C:\\Users\\9500203\\Desktop\\Web Project\\admin-panel-frontend\\package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: backend errors do not silently substitute sample business data
+ok 6 - backend errors do not silently substitute sample business data
+  ---
+  duration_ms: 27.114
+  type: 'test'
+  ...
+# Subtest: network failures and request cancellation produce a recoverable unavailable state
+ok 7 - network failures and request cancellation produce a recoverable unavailable state
+  ---
+  duration_ms: 0.5764
+  type: 'test'
+  ...
+# Subtest: invalid JSON and malformed payloads produce an error, not a successful empty page
+ok 8 - invalid JSON and malformed payloads produce an error, not a successful empty page
+  ---
+  duration_ms: 2.175
+  type: 'test'
+  ...
+# Subtest: an intentionally empty publication stays empty
+ok 9 - an intentionally empty publication stays empty
+  ---
+  duration_ms: 0.7549
+  type: 'test'
+  ...
+# Subtest: published CMS content is preserved and requested with an abort signal
+ok 10 - published CMS content is preserved and requested with an abort signal
+  ---
+  duration_ms: 0.6545
+  type: 'test'
+  ...
+# Subtest: CMS iframe is extracted without encoding HTML as a search
+ok 11 - CMS iframe is extracted without encoding HTML as a search
+  ---
+  duration_ms: 0.5385
+  type: 'test'
+  ...
+# Subtest: map embeds reject executable and non-Google sources
+ok 12 - map embeds reject executable and non-Google sources
+  ---
+  duration_ms: 0.363
+  type: 'test'
+  ...
+# Subtest: addresses, place URLs and short links keep a usable maps destination
+ok 13 - addresses, place URLs and short links keep a usable maps destination
+  ---
+  duration_ms: 0.2592
+  type: 'test'
+  ...
+# Subtest: public links exclude panel routes, unsafe schemes and obfuscation
+ok 14 - public links exclude panel routes, unsafe schemes and obfuscation
+  ---
+  duration_ms: 1.0983
+  type: 'test'
+  ...
+# Subtest: invalid and disabled blocks cannot break the page or expose dead navigation
+ok 15 - invalid and disabled blocks cannot break the page or expose dead navigation
+  ---
+  duration_ms: 0.5746
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2053.4208

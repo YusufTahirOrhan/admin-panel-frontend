@@ -6,7 +6,7 @@ import { salesNavConfig } from "@/app/(sales)/sales/_config/sales-nav-config";
 import { AppLogo } from "@/components/layout/app-logo";
 import { UserMenu } from "@/components/layout/user-menu";
 import { LiveClock } from "@/components/sales/live-clock";
-import { NotificationBell } from "@/components/layout/notification-bell";
+
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +45,7 @@ export function SalesHeader() {
           <Button
             variant="ghost"
             size="icon-sm"
-            className="md:hidden"
+            className="lg:hidden"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Menüyü aç"
           >
@@ -55,7 +55,7 @@ export function SalesHeader() {
           <AppLogo variant="icon" />
 
           {/* Desktop brand text */}
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <span className="text-base font-bold tracking-tight text-foreground">
               Opti<span className="text-[var(--brand-teal-400)]">Maxx</span>
             </span>
@@ -66,7 +66,7 @@ export function SalesHeader() {
         </div>
 
         {/* Center: Tab navigation (desktop) */}
-        <nav className="hidden md:flex items-center gap-1 mx-auto">
+        <nav className="hidden lg:flex items-center gap-1 mx-auto">
           {salesNavConfig.map((item) => {
             const active = isItemActive(item.href);
             const Icon = item.icon;
@@ -91,11 +91,11 @@ export function SalesHeader() {
         </nav>
 
         {/* Right: Clock + Actions */}
-        <div className="flex items-center gap-3 ml-auto md:ml-0">
-          <LiveClock />
-          <NotificationBell />
-          <div className="hidden sm:block">
-            <UserMenu />
+        <div className="flex items-center gap-3 ml-auto lg:ml-0">
+          <div className="hidden xl:block"><LiveClock /></div>
+
+          <div className="max-w-48">
+            <UserMenu compact side="bottom" />
           </div>
         </div>
       </div>

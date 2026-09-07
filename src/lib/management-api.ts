@@ -23,6 +23,7 @@ export interface ResourceField {
   type?: "text" | "number" | "email" | "password" | "textarea" | "select";
   placeholder?: string;
   options?: string[];
+  optionLabels?: Record<string, string>;
   required?: boolean;
 }
 
@@ -108,6 +109,11 @@ export const ENUM_TRANSLATIONS: Record<string, string> = {
   COMPLETED: "Tamamlandı",
   PENDING: "Beklemede",
   CANCELLED: "İptal Edildi",
+  CANCELED: "İptal Edildi",
+  RECEIVED: "Teslim Alındı",
+  IN_PROGRESS: "İşlemde",
+  READY_FOR_PICKUP: "Teslime Hazır",
+  DELIVERED: "Teslim Edildi",
   ACTIVE: "Aktif",
   INACTIVE: "Pasif",
   SUSPENDED: "Askıda",
@@ -156,6 +162,7 @@ export function fieldValue(record: ApiRecord, keys: string[]): string {
 
 export function friendlyApiError(exception: unknown, fallback: string): string {
   if (exception instanceof AxiosError) {
+    if (exception.code === "ECONNABORTED") return "İstek zaman aşımına uğradı. Lütfen yeniden deneyin.";
     const data = exception.response?.data;
     if (isApiRecord(data)) {
       const message = data.message ?? data.error ?? data.detail ?? data.title;

@@ -1,0 +1,47 @@
+
+> frontend@0.1.0 build
+> next build
+
+▲ Next.js 16.2.4 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.7s
+  Running TypeScript ...
+  Finished TypeScript in 8.4s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/21) ...
+  Generating static pages using 11 workers (5/21) 
+  Generating static pages using 11 workers (10/21) 
+  Generating static pages using 11 workers (15/21) 
+✓ Generating static pages using 11 workers (21/21) in 1351ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/analytics
+├ ○ /admin/audits
+├ ○ /admin/customers
+├ ○ /admin/inventory
+├ ○ /admin/settings
+├ ○ /admin/site-editor
+├ ○ /admin/transactions
+├ ○ /admin/users
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/refresh
+├ ƒ /api/v1/sales/transactions/[id]/invoice
+├ ○ /login
+├ ○ /reset-password
+├ ○ /sales
+├ ○ /sales/customers
+├ ○ /sales/prescriptions
+└ ○ /sales/repairs
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

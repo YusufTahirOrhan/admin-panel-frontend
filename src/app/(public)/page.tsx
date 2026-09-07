@@ -1,8 +1,9 @@
 import React from "react";
+import Link from "next/link";
 import BrandShowcase, { type BrandShowcaseItem } from "@/components/public/brand-showcase";
 import {
   GsapHero,
-  GsapPinnedShowcase,
+
   GsapServices,
   GsapProducts,
   GsapAbout,
@@ -11,7 +12,9 @@ import {
   GsapContact,
   GsapSocialFooter,
 } from "@/components/public/gsap-sections";
-import type { PageBlock, SitePage } from "@/lib/management-api";
+import type { PageBlock } from "@/lib/management-api";
+import PublicHeader from "@/components/public/public-header";
+import { fetchPublicHome, getPublicNavigation, isPublicCtaAllowed } from "@/lib/public-content";
 
 export const dynamic = "force-dynamic";
 
@@ -19,173 +22,6 @@ export const metadata = {
   title: "OptiMaxx Optik",
   description: "OptiMaxx optik mağazası, ürünleri ve hizmetleri.",
 };
-
-const fallbackBlocks: PageBlock[] = [
-  {
-    type: "hero",
-    order: 0,
-    enabled: true,
-    content: {
-      title: "OptiMaxx Optik",
-      subtitle: "Göz sağlığınız, net görüş ve stiliniz için modern optik çözümler.",
-      eyebrow: "Mahallenizin modern optik mağazası",
-      primaryButtonLabel: "",
-      primaryButtonHref: "",
-      secondaryButtonLabel: "Koleksiyonları İncele",
-      secondaryButtonHref: "#products",
-      highlights: ["Optik cam danışmanlığı", "Çerçeve seçimi", "Hızlı bakım"],
-      imageUrl: "",
-    },
-  },
-  {
-    type: "services",
-    order: 1,
-    enabled: true,
-    content: {
-      title: "Hizmetlerimiz",
-      subtitle: "Gözlük seçiminden bakım ve ayara kadar mağaza içinde hızlı destek.",
-      items: ["Optik cam danışmanlığı", "Gözlük çerçevesi", "Kontakt lens", "Tamir ve ayar"],
-    },
-  },
-  {
-    type: "featuredProducts",
-    order: 2,
-    enabled: true,
-    content: {
-      title: "Öne Çıkanlar",
-      subtitle: "Günlük kullanım, güneş koruması ve özel cam ihtiyaçları için seçilmiş ürünler.",
-      items: ["Güneş gözlükleri", "Progresif camlar", "Mavi ışık filtreli camlar"],
-    },
-  },
-  {
-    type: "brandShowcase",
-    order: 3,
-    enabled: true,
-    content: {
-      title: "Seçili Marka ve Ürünler",
-      subtitle: "Gözlük ve lens markalarını ayrı akışlarda keşfedin.",
-      eyewearItems: [
-        {
-          name: "Ray-Ban",
-          description: "Klasik güneş gözlüğü ve optik çerçeve modelleri.",
-          imageUrl: "",
-          url: "",
-        },
-        {
-          name: "Persol",
-          description: "El işçiliği detaylı premium çerçeveler.",
-          imageUrl: "",
-          url: "",
-        },
-        {
-          name: "Vogue Eyewear",
-          description: "Günlük kullanıma uygun modern ve renkli tasarımlar.",
-          imageUrl: "",
-          url: "",
-        },
-      ],
-      lensItems: [
-        {
-          name: "Acuvue",
-          description: "Günlük ve aylık kontakt lens seçenekleri.",
-          imageUrl: "",
-          url: "",
-        },
-        {
-          name: "Air Optix",
-          description: "Nefes alabilen kontakt lens teknolojileri.",
-          imageUrl: "",
-          url: "",
-        },
-        {
-          name: "Biofinity",
-          description: "Uzun süreli konfor için kontakt lens alternatifleri.",
-          imageUrl: "",
-          url: "",
-        },
-      ],
-    },
-  },
-  {
-    type: "about",
-    order: 4,
-    enabled: true,
-    content: {
-      title: "Net görüş için sakin, özenli bir deneyim",
-      body: "OptiMaxx, optik ürün seçimini karmaşık olmaktan çıkarıp ihtiyaca uygun, anlaşılır ve güvenilir bir sürece dönüştürür.",
-      imageUrl: "",
-    },
-  },
-  {
-    type: "cta",
-    order: 5,
-    enabled: true,
-    content: {
-      title: "Size uygun camı birlikte seçelim",
-      subtitle: "Ekibimiz ihtiyaçlarınıza göre en doğru çözümü bulmanıza yardımcı olur.",
-      primaryButtonLabel: "Mağazaya Ulaş",
-      primaryButtonHref: "#contact",
-      secondaryButtonLabel: "Hizmetleri Gör",
-      secondaryButtonHref: "#services",
-      imageUrl: "",
-    },
-  },
-  {
-    type: "hours",
-    order: 6,
-    enabled: true,
-    content: {
-      title: "Çalışma Saatleri",
-      subtitle: "Mağaza ziyaretinizi planlamadan önce güncel saatleri kontrol edebilirsiniz.",
-      weekdays: "09:00 - 19:00",
-      saturday: "10:00 - 17:00",
-      sunday: "Kapalı",
-      note: "Resmi tatil ve özel günlerde saatler değişebilir.",
-    },
-  },
-  {
-    type: "contact",
-    order: 7,
-    enabled: true,
-    content: {
-      title: "Mağazamız",
-      phone: "+90 555 123 4567",
-      email: "contact@optimaxx.com",
-      address: "Merkez Mahallesi, Optik Caddesi No: 1",
-      mapUrl: "",
-    },
-  },
-  {
-    type: "socialLinks",
-    order: 8,
-    enabled: true,
-    content: {
-      title: "Bizi Takip Edin",
-      subtitle: "Yeni modeller, kampanyalar ve mağaza duyuruları için sosyal hesaplarımız.",
-      items: [
-        { label: "Instagram", url: "https://instagram.com/" },
-        { label: "Facebook", url: "https://facebook.com/" },
-        { label: "TikTok", url: "https://tiktok.com/" },
-      ],
-    },
-  },
-];
-
-async function getHomeBlocks(): Promise<PageBlock[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-  const fallback = process.env.NODE_ENV === "production" ? [] : fallbackBlocks;
-
-  try {
-    const response = await fetch(`${baseUrl}/api/v1/public/pages/home`, {
-      cache: "no-store",
-    });
-    if (!response.ok) return fallback;
-    const page = (await response.json()) as SitePage;
-    return page.blocks?.length ? page.blocks : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 function text(content: PageBlock["content"], key: string, fallback = "") {
   const value = content[key];
@@ -240,39 +76,17 @@ function asSocialLinks(value: unknown) {
     .filter((item) => item.label && item.url);
 }
 
-function normalizeCtaText(value: string) {
-  return value.trim().toLocaleLowerCase("tr-TR");
-}
-
-function isPublicCtaAllowed(label: string, href: string) {
-  if (!label.trim()) return false;
-
-  const normalizedLabel = normalizeCtaText(label);
-  const normalizedHref = normalizeCtaText(href);
-  const pathOnly = normalizedHref.replace(/^https?:\/\/[^/]+/, "");
-  const forbiddenTerms = ["login", "giris", "giriş", "admin", "panel", "randevu", "appointment"];
-
-  if (forbiddenTerms.some((term) => normalizedLabel.includes(term))) {
-    return false;
-  }
-
-  if (["/login", "/admin", "/sales"].some((path) => pathOnly === path || pathOnly.startsWith(`${path}/`))) {
-    return false;
-  }
-
-  return !["panel.optimaxx.com.tr", "randevu", "appointment"].some((term) => normalizedHref.includes(term));
-}
-
-function renderBlock(block: PageBlock) {
+function renderBlock(block: PageBlock, anchors: Set<string>) {
   const content = block.content;
+  const allowCta = (label: string, href: string) => isPublicCtaAllowed(label, href) && (!href.startsWith('#') || anchors.has(href));
   switch (block.type) {
     case "hero": {
       const primaryButtonLabel = text(content, "primaryButtonLabel");
       const primaryButtonHref = text(content, "primaryButtonHref");
       const secondaryButtonLabel = text(content, "secondaryButtonLabel", "Koleksiyonları İncele");
       const secondaryButtonHref = text(content, "secondaryButtonHref", "#products");
-      const showPrimaryButton = isPublicCtaAllowed(primaryButtonLabel, primaryButtonHref || "#contact");
-      const showSecondaryButton = isPublicCtaAllowed(secondaryButtonLabel, secondaryButtonHref || "#services");
+      const showPrimaryButton = allowCta(primaryButtonLabel, primaryButtonHref || "#contact");
+      const showSecondaryButton = allowCta(secondaryButtonLabel, secondaryButtonHref || "#services");
 
       return (
         <React.Fragment key={block.order}>
@@ -285,7 +99,7 @@ function renderBlock(block: PageBlock) {
             primaryButton={showPrimaryButton ? { label: primaryButtonLabel, href: primaryButtonHref || "#contact" } : null}
             secondaryButton={showSecondaryButton ? { label: secondaryButtonLabel, href: secondaryButtonHref || "#services" } : null}
           />
-          <GsapPinnedShowcase />
+
         </React.Fragment>
       );
     }
@@ -331,8 +145,8 @@ function renderBlock(block: PageBlock) {
       const primaryButtonHref = text(content, "primaryButtonHref", "#contact");
       const secondaryButtonLabel = text(content, "secondaryButtonLabel", "Hizmetleri Gör");
       const secondaryButtonHref = text(content, "secondaryButtonHref", "#services");
-      const showPrimaryButton = isPublicCtaAllowed(primaryButtonLabel, primaryButtonHref || "#contact");
-      const showSecondaryButton = isPublicCtaAllowed(secondaryButtonLabel, secondaryButtonHref || "#services");
+      const showPrimaryButton = allowCta(primaryButtonLabel, primaryButtonHref || "#contact");
+      const showSecondaryButton = allowCta(secondaryButtonLabel, secondaryButtonHref || "#services");
 
       return (
         <GsapCta
@@ -385,13 +199,18 @@ function renderBlock(block: PageBlock) {
 }
 
 export default async function PublicHomePage() {
-  const blocks = await getHomeBlocks();
-  return (
-    <main>
-      {blocks
-        .filter((block) => block.enabled)
-        .sort((a, b) => a.order - b.order)
-        .map(renderBlock)}
+  const { blocks, unavailable } = await fetchPublicHome(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080");
+  const navigation = getPublicNavigation(blocks).filter((item) => item.href !== '#brands' || blocks.some((block) => block.type === 'brandShowcase' && (asBrandItems(block.content.eyewearItems).length || asBrandItems(block.content.lensItems).length)));
+  return <>
+    <PublicHeader items={navigation} />
+    <main id="main-content" tabIndex={-1} className="flex-1">
+      {blocks.length ? blocks.map((block) => renderBlock(block, new Set(navigation.map((item) => item.href)))) : <section className="public-container py-24">
+        <p className="text-sm font-semibold text-teal-700">OptiMaxx Optik</p>
+        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">{unavailable ? 'İçeriğe şu anda ulaşılamıyor' : 'Mağaza bilgileri yakında burada'}</h1>
+        <p className="mt-4 max-w-xl leading-7 text-slate-600">{unavailable ? 'Geçici bir bağlantı sorunu oluştu. Lütfen kısa bir süre sonra yeniden deneyin.' : 'Yayınlanan mağaza bilgilerini bu sayfadan takip edebilirsiniz.'}</p>
+        {unavailable && <form action="/" method="get"><button type="submit" className="mt-7 inline-flex min-h-12 items-center rounded-lg bg-slate-950 px-5 text-sm font-semibold text-white">Yeniden dene</button></form>}
+      </section>}
     </main>
-  );
+    <footer className="border-t border-white/15 bg-slate-950 py-8 text-slate-300"><div className="public-container flex flex-col justify-between gap-4 text-sm sm:flex-row sm:items-center"><Link href="/" className="text-lg font-semibold text-white">OptiMaxx</Link><p>© {new Date().getFullYear()} OptiMaxx. Tüm hakları saklıdır.</p></div></footer>
+  </>;
 }

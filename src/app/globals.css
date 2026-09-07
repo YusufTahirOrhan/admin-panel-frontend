@@ -218,3 +218,15 @@
     transform: none;
   }
 }
+
+/* Public pages use native scrolling and remain visible without animation scripts. */
+.public-container { width: min(100% - 3rem, 72rem); margin-inline: auto; }
+.public-section { padding-block: clamp(3rem, 6vw, 5rem); }
+.public-site { overflow-wrap: anywhere; }
+.public-site section[id], .public-site main { scroll-margin-top: 6rem; }
+.public-site :is(a, button):focus-visible { outline: 3px solid #0d9488; outline-offset: 4px; }
+.public-site header :is(a, button):focus-visible { outline-color: #5eead4; }
+@media (min-width: 640px) { .public-container { width: min(100% - 4rem, 72rem); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
