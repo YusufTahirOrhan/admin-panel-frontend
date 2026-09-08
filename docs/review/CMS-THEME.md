@@ -1,5 +1,7 @@
 # CMS default theme
 
+Historical implementation note: the Hero-based control below has been superseded by the independent Site Görünümü palette setting. See PALETTES.md for current behavior and backend compatibility requirements.
+
 Site editor > Hero > Varsayılan site teması controls the published storefront default. It uses the existing block content JSON and draft/publish API; no backend migration or API change is required. Only the first enabled published hero applies. A missing, disabled or invalid setting falls back to system preference. Explicit visitor light/dark/system cookie preferences override the CMS default.
 
 The layout and page share a request-scoped React cache entry to avoid reading the CMS twice. The theme is applied during server rendering. The editor's illustrative block preview remains separate from the actual storefront theme; inspect the published local storefront to verify final rendering.

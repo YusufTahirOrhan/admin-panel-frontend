@@ -30,7 +30,7 @@ export function parsePublicBlocks(value: unknown): PageBlock[] {
   return value.filter((block): block is PageBlock => {
     if (!block || typeof block !== 'object' || block.enabled !== true ||
         !Number.isFinite(block.order) || !block.content || typeof block.content !== 'object' ||
-        Array.isArray(block.content) || ![...Object.keys(sections), 'hero', 'cta', 'socialLinks'].includes(block.type)) return false;
+        Array.isArray(block.content) || ![...Object.keys(sections), 'hero', 'cta', 'socialLinks', 'appearance'].includes(block.type)) return false;
     return true;
   }).sort((a, b) => a.order - b.order).filter((block) => {
     if (block.type === 'cta') return true;

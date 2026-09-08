@@ -8,12 +8,15 @@
   --store-raised: light-dark(#ffffff, #192720);
   --store-soft: light-dark(#f3f3ee, #14221b);
   --store-border: light-dark(#e3e5e0, #35483d);
+  --store-art: light-dark(#e8ece7, #30483a);
+  --store-cta: light-dark(#203e33, #234b39);
+  --store-button-ink: light-dark(#ffffff, #141418);
   color: var(--store-ink);
   background: var(--store-surface);
 }
 .storefront-theme[data-store-theme="light"] { color-scheme: light; }
 .storefront-theme[data-store-theme="dark"] { color-scheme: dark; }
-.public-header { background: light-dark(#fcfcfaf5, #101a16f5); border-color: var(--store-border); }
+.public-header { background: color-mix(in srgb, var(--store-surface) 96%, transparent); border-color: var(--store-border); }
 .public-theme-trigger { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; color: var(--store-ink); background: transparent; transition: background .2s, color .2s; }
 .public-theme-trigger:hover, .public-theme-trigger[data-popup-open] { background: var(--store-raised); color: var(--store-accent); }
 .public-theme-trigger:focus-visible { outline: 2px solid var(--store-accent); outline-offset: 3px; }
@@ -26,20 +29,23 @@
 .public-site :is(.public-hero, .public-products, footer) { background: var(--store-soft); }
 .public-site :is(.public-services, .public-about, .public-contact, .public-hours, .public-brands) { background: var(--store-surface); }
 .public-site :is(.public-product-card, .public-brand-card) { background: var(--store-raised); border-color: var(--store-border); }
-.public-site .public-hero-image { background: light-dark(#e5e8e1, #24372c); }
-.public-site .public-product-art { background: light-dark(#e8ece7, #30483a); color: light-dark(#26392f, #a3c3b1); }
-.public-site .public-product-card:nth-child(2) .public-product-art { background: light-dark(#e9e9e3, #35443b); }
-.public-site .public-product-card:nth-child(3) .public-product-art { background: light-dark(#e6eaf0, #2c3d49); }
+.public-site .public-hero-image { background: var(--store-art); }
+.public-site .public-product-art { background: var(--store-art); color: var(--store-accent); }
+.public-site .public-product-card:nth-child(2) .public-product-art { background: color-mix(in srgb, var(--store-art) 85%, var(--store-soft)); }
+.public-site .public-product-card:nth-child(3) .public-product-art { background: color-mix(in srgb, var(--store-art) 70%, var(--store-soft)); }
 .storefront-theme :is(.text-slate-950, .text-slate-900, .text-slate-800) { color: var(--store-ink); }
 .storefront-theme :is(.text-slate-600, .text-slate-500, .text-slate-400) { color: var(--store-muted); }
 .storefront-theme :is(.text-teal-700, .text-teal-800) { color: var(--store-accent); }
 .storefront-theme :is(.border-slate-200, .border-slate-300, .public-highlights, .public-service-item, .public-about, .public-contact, .brand-motion-window) { border-color: var(--store-border); }
 .storefront-theme :is(.bg-slate-50, .bg-stone-100) { background: var(--store-soft); }
-.public-site .public-actions a { background: light-dark(#275b4b, #9bd4b7); color: light-dark(#fff, #10281c); }
-.public-site .public-actions a:hover { background: light-dark(#193f34, #b6e5cc); }
+.public-site .public-actions a { background: var(--store-accent); color: var(--store-button-ink); }
+.public-site .public-actions a:hover { background: color-mix(in srgb, var(--store-accent) 85%, var(--store-ink)); }
 .public-site .public-actions a + a { background: transparent; color: inherit; }
-.public-site .public-cta { background: light-dark(#203e33, #234b39); }
-.public-site .public-cta .public-actions a:first-child { background: #f2f8f4; color: #203e33; }
+.public-site .public-cta { background: var(--store-cta); }
+.public-site .public-cta .public-actions a:first-child { background: #f5f5f7; color: #242429; }
+.public-site .public-header nav a[href="#contact"] { background: var(--store-accent); color: var(--store-button-ink); }
+.public-site .public-brand-card:hover { border-color: var(--store-accent); }
+.public-site :is(a, button):focus-visible { outline-color: var(--store-accent); }
 .public-site .public-contact a:hover, .public-site .public-header nav a:not([href="#contact"]):hover { background: var(--store-raised); color: var(--store-accent); }
 .public-site .brand-motion-group > span, .public-site .brand-motion-toggle { color: var(--store-accent); }
 .public-site .brand-motion-toggle:hover { background: var(--store-raised); }

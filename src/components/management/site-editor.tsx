@@ -1,7 +1,6 @@
 "use client";
 
 import { ChangeEvent, DragEvent, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import {
   ArrowDown,
   ArrowUp,
@@ -19,6 +18,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ApiRecord, PageBlock, SitePage, apiGet, apiPost, apiPut, apiUpload, friendlyApiError } from "@/lib/management-api";
+import { SiteAppearance, PalettePagePreview } from "./site-appearance";
+import { getStorePalette, type StorePalette } from "@/lib/store-palettes";
+import { resolveStoreTheme } from "@/lib/store-theme";
 import { cn } from "@/lib/utils";
 
 const blockTypes = [
@@ -272,6 +274,9 @@ function buildBlock(type: BlockType, order: number): PageBlock {
 }
 
 export function SiteEditor() {
+  const [palette, setPalette] = useState<StorePalette>('forest');
+  const [defaultTheme, setDefaultTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const [appearanceContent, setAppearanceContent] = useState<ApiRecord>({});
   const [blocks, setBlocks] = useState<PageBlock[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -295,7 +300,10 @@ export function SiteEditor() {
       setError(null);
       try {
         const page = await apiGet<SitePage>("/api/v1/admin/pages/home/draft");
-        const nextBlocks = normalizeOrders(page.blocks ?? []);
+        setPalette(getStorePalette(page.blocks ?? []));
+        setDefaultTheme(resolveStoreTheme(undefined, page.blocks ?? []));
+        setAppearanceContent(page.blocks?.find((block) => block.type === 'appearance')?.content ?? {});
+        const nextBlocks = normalizeOrders((page.blocks ?? []).filter((block) => block.type !== 'appearance'));
         setBlocks(nextBlocks);
         setSelectedIndex(0);
       } catch (exception) {
@@ -412,7 +420,7 @@ export function SiteEditor() {
     setError(null);
     try {
       await apiPut<SitePage>("/api/v1/admin/pages/home/draft", {
-        blocks: normalizeOrders(blocks),
+        blocks: [{ type: 'appearance', order: -1, enabled: true, content: { ...appearanceContent, palette, defaultTheme } }, ...normalizeOrders(blocks)],
       });
       setMessage("Taslak kaydedildi.");
     } catch (exception) {
@@ -433,7 +441,7 @@ export function SiteEditor() {
     setError(null);
     try {
       await apiPut<SitePage>("/api/v1/admin/pages/home/draft", {
-        blocks: normalizeOrders(blocks),
+        blocks: [{ type: 'appearance', order: -1, enabled: true, content: { ...appearanceContent, palette, defaultTheme } }, ...normalizeOrders(blocks)],
       });
       await apiPost<SitePage>("/api/v1/admin/pages/home/publish");
       setMessage("Ana sayfa yayınlandı.");
@@ -446,7 +454,7 @@ export function SiteEditor() {
 
   if (loading) {
     return (
-      <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
         <div className="h-96 animate-pulse rounded-lg border bg-muted/40" />
         <div className="h-96 animate-pulse rounded-lg border bg-muted/40" />
       </div>
@@ -454,7 +462,10 @@ export function SiteEditor() {
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
+    <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="min-w-0 xl:col-span-2"><SiteAppearance blocks={blocks} palette={palette} defaultTheme={defaultTheme} disabled={saving}
+        onPaletteChange={(value) => { setPalette(value); setMessage(null); }}
+        onThemeChange={(value) => { setDefaultTheme(value); setMessage(null); }} /></div>
       <div className="space-y-4">
         <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
@@ -530,7 +541,7 @@ export function SiteEditor() {
         </div>
       </div>
 
-      <div className="grid gap-5 min-[1700px]:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="grid min-w-0 grid-cols-1 gap-5 min-[1700px]:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-4">
           {message && (
             <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -615,15 +626,6 @@ export function SiteEditor() {
               </div>
 
               <div className="mt-5 grid gap-4">
-                {selectedType === 'hero' && <label className="space-y-1.5 text-sm">
-                  <span className="font-medium">Varsayılan site teması</span>
-                  <select aria-describedby="site-theme-help" disabled={saving} className="h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                    value={selectedBlock.content.defaultTheme === 'light' || selectedBlock.content.defaultTheme === 'dark' ? selectedBlock.content.defaultTheme : 'system'}
-                    onChange={(event) => updateSelectedContent('defaultTheme', event.target.value)}>
-                    <option value="system">Ziyaretçinin sistem tercihi</option><option value="light">Açık tema</option><option value="dark">Koyu tema</option>
-                  </select>
-                  <span id="site-theme-help" className="block text-xs leading-5 text-muted-foreground">Aktif Hero bloğu yayınlandığında uygulanır. Kendi temasını seçmiş ziyaretçilerin tercihi korunur. Hero bloğu kaldırılırsa sistem teması kullanılır.</span>
-                </label>}
                 {fieldsByType[selectedType].map((field) =>
                   field.type === "brandList" ? (
                     <div key={field.key} className="space-y-1.5 text-sm">
@@ -701,13 +703,7 @@ export function SiteEditor() {
             <Eye className="h-4 w-4" />
             Canlı Önizleme
           </h2>
-          <div className="overflow-hidden rounded-lg border bg-white text-slate-950">
-            {enabledBlocks.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500">Aktif blok yok. Önizleme için bir bloğu aktif edin.</div>
-            ) : (
-              enabledBlocks.map((block, index) => <PreviewBlock key={`${block.type}-${index}`} block={block} />)
-            )}
-          </div>
+          <PalettePagePreview blocks={enabledBlocks} palette={palette} mode={defaultTheme} />
         </div>
       </div>
     </div>
@@ -866,244 +862,4 @@ function BrandItemEditor({ items, onChange }: { items: ApiRecord[]; onChange: (i
       )}
     </div>
   );
-}
-
-function PreviewBlock({ block }: { block: PageBlock }) {
-  const content = block.content;
-  const type = isBlockType(block.type) ? block.type : "cta";
-  const imageUrl = textValue(content, "imageUrl");
-
-  if (type === "hero") {
-    const highlights = listValue(content, "highlights");
-    const primaryButtonLabel = textValue(content, "primaryButtonLabel");
-    const secondaryButtonLabel = textValue(content, "secondaryButtonLabel");
-
-    return (
-      <section className="bg-slate-950 px-5 py-8 text-white">
-        <p className="text-xs font-semibold uppercase tracking-wide text-teal-300">{textValue(content, "eyebrow") || "Optik mağazası"}</p>
-        <h3 className="mt-3 text-3xl font-bold">{textValue(content, "title") || "OptiMaxx Optik"}</h3>
-        <p className="mt-3 text-sm leading-6 text-slate-300">{textValue(content, "subtitle")}</p>
-        {(primaryButtonLabel || secondaryButtonLabel) && (
-          <div className="mt-5 flex flex-wrap gap-2">
-            {primaryButtonLabel ? (
-              <span className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-950">
-                {primaryButtonLabel}
-              </span>
-            ) : null}
-            {secondaryButtonLabel ? (
-              <span className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-white">
-                {secondaryButtonLabel}
-              </span>
-            ) : null}
-          </div>
-        )}
-        {highlights.length > 0 && (
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">
-            {highlights.map((item) => (
-              <div key={item} className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs font-medium">
-                {item}
-              </div>
-            ))}
-          </div>
-        )}
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt=""
-            width={800}
-            height={450}
-            unoptimized
-            className="mt-5 aspect-video w-full rounded-lg object-cover"
-          />
-        ) : null}
-      </section>
-    );
-  }
-
-  if (type === "services" || type === "featuredProducts") {
-    return (
-      <section className="border-b px-5 py-6">
-        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
-        <p className="mt-2 text-sm text-slate-500">{textValue(content, "subtitle")}</p>
-        <div className="mt-4 grid gap-2">
-          {listValue(content).map((item) => (
-            <div key={item} className="rounded-lg border p-3 text-sm font-medium">
-              {item}
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (type === "brandShowcase") {
-    const eyewearItems = recordListValue(content, "eyewearItems");
-    const lensItems = recordListValue(content, "lensItems");
-
-    return (
-      <section className="border-b bg-slate-950 px-5 py-6 text-white">
-        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
-        <p className="mt-2 text-sm text-slate-300">{textValue(content, "subtitle")}</p>
-        <div className="mt-4 grid gap-3">
-          {[
-            ["Gözlük", eyewearItems],
-            ["Lens", lensItems],
-          ].map(([label, items]) => (
-            <div key={String(label)} className="rounded-lg border border-white/10 bg-white/5 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-teal-300">{String(label)}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(items as ApiRecord[]).map((item, index) => (
-                  <span key={`${recordText(item, "name")}-${index}`} className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-medium">
-                    {recordText(item, "name") || "Yeni marka"}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (type === "socialLinks") {
-    const items = recordListValue(content, "items");
-
-    return (
-      <section className="border-b px-5 py-6">
-        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
-        <p className="mt-2 text-sm text-slate-500">{textValue(content, "subtitle")}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {items.map((item, index) => (
-            <span key={`${recordText(item, "label")}-${index}`} className="rounded-lg border px-3 py-2 text-sm font-medium">
-              {recordText(item, "label") || "Sosyal hesap"}
-            </span>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (type === "about" || type === "cta") {
-    const primaryButtonLabel = textValue(content, "primaryButtonLabel");
-    const secondaryButtonLabel = textValue(content, "secondaryButtonLabel");
-
-    return (
-      <section className="border-b bg-slate-50 px-5 py-6 text-center">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt=""
-            width={800}
-            height={450}
-            unoptimized
-            className="mb-4 aspect-video w-full rounded-lg object-cover"
-          />
-        ) : null}
-        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-500">{textValue(content, type === "about" ? "body" : "subtitle")}</p>
-        {type === "cta" && (primaryButtonLabel || secondaryButtonLabel) ? (
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {primaryButtonLabel ? (
-              <span className="rounded-lg bg-slate-950 px-3 py-2 text-xs font-semibold text-white">
-                {primaryButtonLabel}
-              </span>
-            ) : null}
-            {secondaryButtonLabel ? (
-              <span className="rounded-lg border px-3 py-2 text-xs font-semibold text-slate-700">
-                {secondaryButtonLabel}
-              </span>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
-    );
-  }
-
-  if (type === "contact") {
-    const mapUrl = textValue(content, "mapUrl");
-    return (
-      <section className="border-b px-5 py-6">
-        <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
-        <div className="mt-4 grid gap-6 md:grid-cols-2">
-          <div className="space-y-2 text-sm text-slate-600">
-            {["phone", "email", "address", "weekdays", "saturday", "sunday", "note"].map((key) =>
-              textValue(content, key) ? (
-                <p key={key} className="flex justify-between gap-4 border-b pb-2 last:border-0">
-                  <span className="font-medium">{fieldLabel(key)}</span>
-                  <span className="text-right">{textValue(content, key)}</span>
-                </p>
-              ) : null,
-            )}
-          </div>
-          {mapUrl ? (
-            <iframe
-              title="Harita önizleme"
-              src={toEmbedMapUrl(mapUrl)}
-              className="h-48 w-full rounded-lg border"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-48 items-center justify-center rounded-lg border bg-slate-100 text-xs text-slate-400">
-              Harita URL eklendiğinde burada görünecek
-            </div>
-          )}
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="border-b px-5 py-6">
-      <h3 className="text-xl font-bold">{textValue(content, "title") || blockLabels[type]}</h3>
-      <div className="mt-4 space-y-2 text-sm text-slate-600">
-        {["phone", "email", "address", "weekdays", "saturday", "sunday", "note"].map((key) =>
-          textValue(content, key) ? (
-            <p key={key} className="flex justify-between gap-4 border-b pb-2 last:border-0">
-              <span className="font-medium">{fieldLabel(key)}</span>
-              <span className="text-right">{textValue(content, key)}</span>
-            </p>
-          ) : null,
-        )}
-      </div>
-    </section>
-  );
-}
-
-function toEmbedMapUrl(rawUrl: string): string {
-  if (!rawUrl) return "";
-  let url = rawUrl.trim();
-
-  // Extract src if iframe tag is pasted
-  const iframeMatch = url.match(/src=["']([^"']+)["']/i);
-  if (iframeMatch) {
-    url = iframeMatch[1];
-  }
-
-  // Official Google Maps Embed (/maps/embed?pb=...)
-  if (url.includes("/maps/embed") && !url.includes("output=embed")) {
-    return url;
-  }
-
-  // Extract place name if place URL
-  let query = url;
-  const placeMatch = url.match(/\/maps\/place\/([^/]+)/i);
-  if (placeMatch) {
-    query = decodeURIComponent(placeMatch[1].replace(/\+/g, " "));
-  }
-
-  // Clean embed URL without legacy info bubble banner
-  return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-}
-
-function fieldLabel(key: string) {
-  const labels: Record<string, string> = {
-    phone: "Telefon",
-    email: "E-posta",
-    address: "Adres",
-    weekdays: "Hafta içi",
-    saturday: "Cumartesi",
-    sunday: "Pazar",
-    note: "Not",
-  };
-  return labels[key] ?? key;
 }

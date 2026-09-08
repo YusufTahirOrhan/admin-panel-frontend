@@ -1,0 +1,11 @@
+.appearance-sample { border-color: var(--store-border); }
+.appearance-preview-scroll { height: 520px; overflow: auto; border: 1px solid #80808040; border-radius: 16px; }
+.appearance-preview-scroll:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
+.appearance-content-preview .public-container { width: calc(100% - 40px); }
+.appearance-content-preview .public-hero-grid { grid-template-columns: 1fr; gap: 24px; padding-block: 32px; }
+.appearance-content-preview .public-hero-title { font-size: 38px; }
+.appearance-content-preview .public-hero-subtitle { font-size: 15px; }
+.appearance-content-preview .public-hero-image { aspect-ratio: 4/3; }
+.appearance-content-preview .public-section { padding-block: 32px; }
+.appearance-content-preview .public-heading h2 { font-size: 28px; }
+.appearance-content-preview :is(.public-service-list,.public-product-list) { grid-template-columns: 1fr; }

@@ -5,12 +5,14 @@ import { ArrowUpRight, Glasses, Pause, Play } from "lucide-react";
 import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { safePublicHref } from "@/lib/public-content";
-import { usePublicTheme } from "./public-theme";
+import { usePublicTheme, useStorePalette } from "./public-theme";
+import { paletteStyle } from "@/lib/store-palettes";
 
 export type BrandShowcaseItem = { name: string; description?: string; imageUrl?: string; url?: string };
 export default function BrandShowcase({ title, subtitle, eyewearItems, lensItems }: { title: string; subtitle?: string; eyewearItems: BrandShowcaseItem[]; lensItems: BrandShowcaseItem[] }) {
   const [selected, setSelected] = useState<BrandShowcaseItem | null>(null);
   const theme = usePublicTheme();
+  const palette = useStorePalette();
   const [paused, setPaused] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   if (!eyewearItems.length && !lensItems.length) return null;
@@ -42,7 +44,7 @@ export default function BrandShowcase({ title, subtitle, eyewearItems, lensItems
       </div>)}</div>
     </div>
     <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null); }}>
-      <DialogContent finalFocus={triggerRef} data-store-theme={theme} className="storefront-theme public-brand-dialog max-w-xl">
+      <DialogContent finalFocus={triggerRef} data-store-theme={theme} style={paletteStyle(palette)} className="storefront-theme public-brand-dialog max-w-xl">
         <DialogHeader><DialogTitle>{selected?.name}</DialogTitle><DialogDescription>{selected?.description || 'Marka bilgileri'}</DialogDescription></DialogHeader>
         {selected?.imageUrl && <div className="relative mt-5 aspect-[4/3] overflow-hidden rounded-lg bg-slate-50"><Image src={selected.imageUrl} alt={selected.name} fill sizes="560px" className="object-contain" /></div>}
         {selected?.url && safePublicHref(selected.url) && <a href={selected.url} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white">Marka sayfasını aç<span className="sr-only"> (yeni sekme)</span><ArrowUpRight aria-hidden="true" className="size-4" /></a>}
