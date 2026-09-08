@@ -1,17 +1,18 @@
 import React from "react";
+import StorefrontMotion from "@/components/public/storefront-motion";
 import Link from "next/link";
 import BrandShowcase, { type BrandShowcaseItem } from "@/components/public/brand-showcase";
 import {
-  GsapHero,
+  PublicHero,
 
-  GsapServices,
-  GsapProducts,
-  GsapAbout,
-  GsapCta,
-  GsapHours,
-  GsapContact,
-  GsapSocialFooter,
-} from "@/components/public/gsap-sections";
+  PublicServices,
+  PublicProducts,
+  PublicAbout,
+  PublicCta,
+  PublicHours,
+  PublicContact,
+  PublicSocialFooter,
+} from "@/components/public/storefront-sections";
 import type { PageBlock } from "@/lib/management-api";
 import PublicHeader from "@/components/public/public-header";
 import { fetchPublicHome, getPublicNavigation, isPublicCtaAllowed } from "@/lib/public-content";
@@ -90,7 +91,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
 
       return (
         <React.Fragment key={block.order}>
-          <GsapHero
+          <PublicHero
             eyebrow={text(content, "eyebrow", "Mahallenizin modern optik mağazası")}
             title={text(content, "title", "OptiMaxx Optik")}
             subtitle={text(content, "subtitle", "Göz sağlığınız, net görüş ve stiliniz için modern optik çözümler.")}
@@ -105,7 +106,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
     }
     case "services":
       return (
-        <GsapServices
+        <PublicServices
           key={block.order}
           title={text(content, "title", "Hizmetlerimiz")}
           subtitle={text(content, "subtitle")}
@@ -114,7 +115,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
       );
     case "featuredProducts":
       return (
-        <GsapProducts
+        <PublicProducts
           key={block.order}
           title={text(content, "title", "Öne Çıkanlar")}
           subtitle={text(content, "subtitle")}
@@ -133,7 +134,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
       );
     case "about":
       return (
-        <GsapAbout
+        <PublicAbout
           key={block.order}
           title={text(content, "title", "OptiMaxx")}
           body={text(content, block.type === "about" ? "body" : "subtitle")}
@@ -149,7 +150,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
       const showSecondaryButton = allowCta(secondaryButtonLabel, secondaryButtonHref || "#services");
 
       return (
-        <GsapCta
+        <PublicCta
           key={block.order}
           title={text(content, "title", "Size uygun camı birlikte seçelim")}
           subtitle={text(content, "subtitle")}
@@ -161,7 +162,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
     }
     case "hours":
       return (
-        <GsapHours
+        <PublicHours
           key={block.order}
           title={text(content, "title", "Çalışma Saatleri")}
           subtitle={text(content, "subtitle")}
@@ -173,7 +174,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
       );
     case "contact":
       return (
-        <GsapContact
+        <PublicContact
           key={block.order}
           title={text(content, "title", "Mağazamız")}
           address={text(content, "address")}
@@ -185,7 +186,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
     case "socialLinks": {
       const links = asSocialLinks(content.items);
       return (
-        <GsapSocialFooter
+        <PublicSocialFooter
           key={block.order}
           socialTitle={text(content, "title", "Bizi Takip Edin")}
           socialSubtitle={text(content, "subtitle")}
@@ -204,7 +205,7 @@ export default async function PublicHomePage() {
   return <>
     <PublicHeader items={navigation} />
     <main id="main-content" tabIndex={-1} className="flex-1">
-      {blocks.length ? blocks.map((block) => renderBlock(block, new Set(navigation.map((item) => item.href)))) : <section className="public-container py-24">
+      {blocks.length ? blocks.map((block) => <StorefrontMotion key={`${block.type}-${block.order}`}>{renderBlock(block, new Set(navigation.map((item) => item.href)))}</StorefrontMotion>) : <section className="public-container py-24">
         <p className="text-sm font-semibold text-teal-700">OptiMaxx Optik</p>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">{unavailable ? 'İçeriğe şu anda ulaşılamıyor' : 'Mağaza bilgileri yakında burada'}</h1>
         <p className="mt-4 max-w-xl leading-7 text-slate-600">{unavailable ? 'Geçici bir bağlantı sorunu oluştu. Lütfen kısa bir süre sonra yeniden deneyin.' : 'Yayınlanan mağaza bilgilerini bu sayfadan takip edebilirsiniz.'}</p>

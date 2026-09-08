@@ -1,0 +1,52 @@
+/* Scoped to the storefront and its portalled dialogs, never the admin theme. */
+.storefront-theme {
+  color-scheme: light dark;
+  --store-ink: light-dark(#202522, #edf3ee);
+  --store-muted: light-dark(#626963, #acbcb2);
+  --store-accent: light-dark(#275b4b, #9bd4b7);
+  --store-surface: light-dark(#fcfcfa, #101a16);
+  --store-raised: light-dark(#ffffff, #192720);
+  --store-soft: light-dark(#f3f3ee, #14221b);
+  --store-border: light-dark(#e3e5e0, #35483d);
+  color: var(--store-ink);
+  background: var(--store-surface);
+}
+.storefront-theme[data-store-theme="light"] { color-scheme: light; }
+.storefront-theme[data-store-theme="dark"] { color-scheme: dark; }
+.public-header { background: light-dark(#fcfcfaf5, #101a16f5); border-color: var(--store-border); }
+.public-theme-trigger { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; color: var(--store-ink); background: transparent; transition: background .2s, color .2s; }
+.public-theme-trigger:hover, .public-theme-trigger[data-popup-open] { background: var(--store-raised); color: var(--store-accent); }
+.public-theme-trigger:focus-visible { outline: 2px solid var(--store-accent); outline-offset: 3px; }
+.public-theme-menu { width: 188px; padding: 6px; border: 1px solid var(--store-border); border-radius: 16px; box-shadow: 0 12px 40px #0002; }
+.public-theme-menu-label { padding: 8px 10px 6px; font-size: 11px; font-weight: 500; color: var(--store-muted); }
+.public-theme-menu .public-theme-option { min-height: 44px; gap: 12px; padding-left: 10px; border-radius: 10px; color: var(--store-ink); cursor: pointer; }
+.public-theme-menu .public-theme-option:is([data-highlighted], :focus-visible) { background: var(--store-soft); color: var(--store-accent); }
+.public-theme-menu .public-theme-option[data-checked] { color: var(--store-accent); }
+.public-theme-menu .public-theme-option svg { color: inherit; }
+.public-site :is(.public-hero, .public-products, footer) { background: var(--store-soft); }
+.public-site :is(.public-services, .public-about, .public-contact, .public-hours, .public-brands) { background: var(--store-surface); }
+.public-site :is(.public-product-card, .public-brand-card) { background: var(--store-raised); border-color: var(--store-border); }
+.public-site .public-hero-image { background: light-dark(#e5e8e1, #24372c); }
+.public-site .public-product-art { background: light-dark(#e8ece7, #30483a); color: light-dark(#26392f, #a3c3b1); }
+.public-site .public-product-card:nth-child(2) .public-product-art { background: light-dark(#e9e9e3, #35443b); }
+.public-site .public-product-card:nth-child(3) .public-product-art { background: light-dark(#e6eaf0, #2c3d49); }
+.storefront-theme :is(.text-slate-950, .text-slate-900, .text-slate-800) { color: var(--store-ink); }
+.storefront-theme :is(.text-slate-600, .text-slate-500, .text-slate-400) { color: var(--store-muted); }
+.storefront-theme :is(.text-teal-700, .text-teal-800) { color: var(--store-accent); }
+.storefront-theme :is(.border-slate-200, .border-slate-300, .public-highlights, .public-service-item, .public-about, .public-contact, .brand-motion-window) { border-color: var(--store-border); }
+.storefront-theme :is(.bg-slate-50, .bg-stone-100) { background: var(--store-soft); }
+.public-site .public-actions a { background: light-dark(#275b4b, #9bd4b7); color: light-dark(#fff, #10281c); }
+.public-site .public-actions a:hover { background: light-dark(#193f34, #b6e5cc); }
+.public-site .public-actions a + a { background: transparent; color: inherit; }
+.public-site .public-cta { background: light-dark(#203e33, #234b39); }
+.public-site .public-cta .public-actions a:first-child { background: #f2f8f4; color: #203e33; }
+.public-site .public-contact a:hover, .public-site .public-header nav a:not([href="#contact"]):hover { background: var(--store-raised); color: var(--store-accent); }
+.public-site .brand-motion-group > span, .public-site .brand-motion-toggle { color: var(--store-accent); }
+.public-site .brand-motion-toggle:hover { background: var(--store-raised); }
+.public-brand-dialog { border-color: var(--store-border); }
+.public-brand-dialog > div { border-color: var(--store-border); }
+@media (max-width: 380px) {
+  .public-header .public-container { gap: 6px; }
+  .public-header a[aria-label="OptiMaxx ana sayfa"] { font-size: 21px; }
+  .public-header button[aria-controls="mobile-navigation"] { min-width: 44px; justify-content: center; padding-inline: 8px; }
+}

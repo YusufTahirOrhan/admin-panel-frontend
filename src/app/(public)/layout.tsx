@@ -1,3 +1,11 @@
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
-  return <div className="public-site flex min-h-screen flex-col bg-white">{children}</div>;
+import "./public.css";
+import "./motion.css";
+import "./theme.css";
+import { cookies } from "next/headers";
+import { PublicThemeProvider } from "@/components/public/public-theme";
+
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  const saved = (await cookies()).get('optimaxx-store-theme')?.value;
+  const initialTheme = saved === 'light' || saved === 'dark' ? saved : 'system';
+  return <PublicThemeProvider initialTheme={initialTheme}>{children}</PublicThemeProvider>;
 }
