@@ -3,9 +3,12 @@ import "./motion.css";
 import "./theme.css";
 import { cookies } from "next/headers";
 import { PublicThemeProvider } from "@/components/public/public-theme";
+import { getPublishedHome } from "@/lib/published-home";
+import { resolveStoreTheme } from "@/lib/store-theme";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const saved = (await cookies()).get('optimaxx-store-theme')?.value;
-  const initialTheme = saved === 'light' || saved === 'dark' ? saved : 'system';
+  const { blocks } = await getPublishedHome();
+  const initialTheme = resolveStoreTheme(saved, blocks);
   return <PublicThemeProvider initialTheme={initialTheme}>{children}</PublicThemeProvider>;
 }

@@ -530,7 +530,7 @@ export function SiteEditor() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="grid gap-5 min-[1700px]:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-4">
           {message && (
             <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -615,6 +615,15 @@ export function SiteEditor() {
               </div>
 
               <div className="mt-5 grid gap-4">
+                {selectedType === 'hero' && <label className="space-y-1.5 text-sm">
+                  <span className="font-medium">Varsayılan site teması</span>
+                  <select aria-describedby="site-theme-help" disabled={saving} className="h-11 w-full rounded-lg border border-input bg-background px-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                    value={selectedBlock.content.defaultTheme === 'light' || selectedBlock.content.defaultTheme === 'dark' ? selectedBlock.content.defaultTheme : 'system'}
+                    onChange={(event) => updateSelectedContent('defaultTheme', event.target.value)}>
+                    <option value="system">Ziyaretçinin sistem tercihi</option><option value="light">Açık tema</option><option value="dark">Koyu tema</option>
+                  </select>
+                  <span id="site-theme-help" className="block text-xs leading-5 text-muted-foreground">Aktif Hero bloğu yayınlandığında uygulanır. Kendi temasını seçmiş ziyaretçilerin tercihi korunur. Hero bloğu kaldırılırsa sistem teması kullanılır.</span>
+                </label>}
                 {fieldsByType[selectedType].map((field) =>
                   field.type === "brandList" ? (
                     <div key={field.key} className="space-y-1.5 text-sm">
@@ -687,7 +696,7 @@ export function SiteEditor() {
           )}
         </div>
 
-        <div className="rounded-lg border bg-card p-4 shadow-sm lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto">
+        <div className="rounded-lg border bg-card p-4 shadow-sm min-[1700px]:sticky min-[1700px]:top-4 min-[1700px]:max-h-[calc(100vh-2rem)] min-[1700px]:overflow-auto">
           <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
             <Eye className="h-4 w-4" />
             Canlı Önizleme

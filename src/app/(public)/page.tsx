@@ -15,7 +15,8 @@ import {
 } from "@/components/public/storefront-sections";
 import type { PageBlock } from "@/lib/management-api";
 import PublicHeader from "@/components/public/public-header";
-import { fetchPublicHome, getPublicNavigation, isPublicCtaAllowed } from "@/lib/public-content";
+import { getPublicNavigation, isPublicCtaAllowed } from "@/lib/public-content";
+import { getPublishedHome } from "@/lib/published-home";
 
 export const dynamic = "force-dynamic";
 
@@ -200,7 +201,7 @@ function renderBlock(block: PageBlock, anchors: Set<string>) {
 }
 
 export default async function PublicHomePage() {
-  const { blocks, unavailable } = await fetchPublicHome(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080");
+  const { blocks, unavailable } = await getPublishedHome();
   const navigation = getPublicNavigation(blocks).filter((item) => item.href !== '#brands' || blocks.some((block) => block.type === 'brandShowcase' && (asBrandItems(block.content.eyewearItems).length || asBrandItems(block.content.lensItems).length)));
   return <>
     <PublicHeader items={navigation} />
