@@ -18,7 +18,9 @@ export function Toaster() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-3 bottom-3 z-[60] flex flex-col items-center gap-2 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:items-end"
+      // Phones: top, so the POS total bar at the bottom stays usable. Larger screens: bottom
+      // center, clear of the cart column and its checkout button on the right.
+      className="pointer-events-none fixed inset-x-3 top-3 z-[60] flex flex-col items-center gap-2 sm:top-auto sm:bottom-4"
       aria-live="polite"
       aria-relevant="additions"
     >
@@ -29,7 +31,7 @@ export function Toaster() {
             key={toast.id}
             role={toast.kind === "error" ? "alert" : "status"}
             className={cn(
-              "pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm shadow-lg motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
+              "pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm shadow-lg motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 sm:motion-safe:slide-in-from-bottom-2",
               styles[toast.kind],
             )}
           >

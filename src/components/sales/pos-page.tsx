@@ -237,6 +237,8 @@ export function PosPage() {
       setWalkInName("");
       setShowWalkIn(false);
       setDiscountText("");
+      // Each sale starts from cash so a card choice is never carried over by accident.
+      setPaymentMethod("CASH");
       setPaymentReference("");
       setPriceCheck(false);
       setLastSale(sale);
