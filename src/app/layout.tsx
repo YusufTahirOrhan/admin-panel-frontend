@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import QueryProvider from "@/providers/query-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
 
 // Inter is bundled from @fontsource-variable/inter instead of being downloaded from Google
 // Fonts at build time: the build works offline, visitors' browsers never call Google, and the
@@ -46,6 +47,7 @@ export default function RootLayout({
             {children}
           </TooltipProvider>
         </QueryProvider>
+        <Toaster />
       </body>
     </html>
   );

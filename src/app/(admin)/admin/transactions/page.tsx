@@ -1,382 +1,136 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Receipt, ShoppingCart } from "lucide-react";
 import { ResourcePage } from "@/components/management/resource-page";
-import { apiGet, apiPost, normalizeList, translateEnum } from "@/lib/management-api";
-import { Button } from "@/components/ui/button";
-import { BorderGlowButton } from "@/components/ui/border-glow-button";
 import { ShinyText } from "@/components/ui/shiny-text";
-import { BlurText } from "@/components/ui/blur-text";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { ShoppingCart, UserCheck, PackageCheck, AlertCircle, Tag, Receipt } from "lucide-react";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SaleActionButtons, invoiceUrl, refundableAmount, type SaleSummary } from "@/components/sales/sale-actions";
+import { buttonVariants } from "@/components/ui/button";
+import { formatDateTime, formatMoney } from "@/lib/format";
+import { translateEnum, type ApiRecord } from "@/lib/management-api";
+import { cn } from "@/lib/utils";
 
-interface Customer {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
+const TIMELINE_LABELS: Record<string, string> = {
+  SALE_TRANSACTION_CREATED: "Satış oluşturuldu",
+  SALE_STOCK_DEDUCTED: "Ürün stoktan düşüldü",
+  SALE_TRANSACTION_REFUNDED: "İade yapıldı",
+  SALE_TRANSACTION_CANCELED: "Satış iptal edildi",
+};
 
-interface InventoryItem {
-  id: string;
-  sku: string;
-  name: string;
-  category?: string;
-  quantity: number;
-}
-
-interface TransactionType {
-  id: string;
-  code: string;
-  name: string;
-  description?: string;
+function toSale(item: ApiRecord): SaleSummary {
+  return {
+    id: String(item.id),
+    receiptNumber: item.receiptNumber ? String(item.receiptNumber) : undefined,
+    amount: typeof item.amount === "number" ? item.amount : Number(item.amount ?? 0),
+    refundedAmount: item.refundedAmount === null || item.refundedAmount === undefined ? null : Number(item.refundedAmount),
+    status: item.status ? String(item.status) : undefined,
+  };
 }
 
 export default function AdminTransactionsPage() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>([]);
-  
-  // Form State
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
-  const [quickCustomerName, setQuickCustomerName] = useState<string>("");
-  const [selectedItemId, setSelectedItemId] = useState<string>("");
-  const [selectedTypeId, setSelectedTypeId] = useState<string>("");
-  const [quantity, setQuantity] = useState<number>(1);
-  const [unitPrice, setUnitPrice] = useState<number>(0);
-  const [paymentMethod, setPaymentMethod] = useState<string>("CASH");
-  const [notes, setNotes] = useState<string>("");
-
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [cData, iData, tData] = await Promise.all([
-          apiGet<unknown>("/api/v1/sales/customers?size=200"),
-          apiGet<unknown>("/api/v1/admin/inventory/items"),
-          apiGet<unknown>("/api/v1/sales/transaction-types"),
-        ]);
-        
-        setCustomers(
-          normalizeList(cData).map((rec) => ({
-            id: String(rec.id || ""),
-            firstName: String(rec.firstName || ""),
-            lastName: String(rec.lastName || ""),
-            phone: String(rec.phone || ""),
-          })).filter((c) => c.id)
-        );
-
-        setInventoryItems(
-          normalizeList(iData).map((rec) => ({
-            id: String(rec.id || ""),
-            sku: String(rec.sku || ""),
-            name: String(rec.name || ""),
-            category: String(rec.category || ""),
-            quantity: Number(rec.quantity || 0),
-          })).filter((i) => i.id)
-        );
-
-        const loadedTypes = normalizeList(tData).map((rec) => ({
-          id: String(rec.id || ""),
-          code: String(rec.code || ""),
-          name: String(rec.name || rec.code || ""),
-          description: String(rec.description || ""),
-        })).filter((t) => t.id);
-
-        setTransactionTypes(loadedTypes);
-        if (loadedTypes.length > 0 && !selectedTypeId) {
-          setSelectedTypeId(loadedTypes[0].id);
-        }
-      } catch {
-        // Ignored
-      }
-    }
-    if (modalOpen) {
-      loadData();
-    }
-  }, [modalOpen, selectedTypeId]);
-
-  function handleProductSelect(itemId: string) {
-    setSelectedItemId(itemId);
-    const item = inventoryItems.find((i) => i.id === itemId);
-    if (item && item.quantity <= 0) {
-      setError(`"${item.name}" stokta tükenmiş.`);
-    } else {
-      setError(null);
-    }
-  }
-
-  async function handleCreateSale() {
-    if (!selectedItemId) {
-      setError("Lütfen satılacak ürünü seçin.");
-      return;
-    }
-
-    const item = inventoryItems.find((i) => i.id === selectedItemId);
-    if (!item) {
-      setError("Seçilen ürün envanterde bulunamadı.");
-      return;
-    }
-
-    if (quantity <= 0) {
-      setError("Satış miktarı en az 1 olmalıdır.");
-      return;
-    }
-
-    if (quantity > item.quantity) {
-      setError(`Stok yetersiz. En fazla ${item.quantity} adet satabilirsiniz.`);
-      return;
-    }
-
-    const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
-    const customerName = selectedCustomer
-      ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}`.trim()
-      : quickCustomerName.trim() || "Perakende Müşteri";
-
-    const totalAmount = unitPrice > 0 ? unitPrice * quantity : 100 * quantity;
-
-    setSaving(true);
-    setError(null);
-
-    try {
-      await apiPost("/api/v1/sales/transactions", {
-        transactionTypeId: selectedTypeId || undefined,
-        customerId: selectedCustomerId || undefined,
-        customerName: customerName,
-        amount: totalAmount,
-        paymentMethod: paymentMethod,
-        items: [
-          {
-            inventoryItemId: item.id,
-            name: item.name,
-            sku: item.sku,
-            quantity: quantity,
-            unitPrice: unitPrice > 0 ? unitPrice : 100,
-            lineTotal: totalAmount,
-          },
-        ],
-        notes: notes.trim() || `Ürün: ${item.name} (${item.sku}) x ${quantity}`,
-      });
-
-      setModalOpen(false);
-      setSelectedCustomerId("");
-      setQuickCustomerName("");
-      setSelectedItemId("");
-      setQuantity(1);
-      setUnitPrice(0);
-      setNotes("");
-      setRefreshKey((prev) => prev + 1);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Satış kaydı oluşturulamadı.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return (
     <div className="space-y-6">
-      {/* Single Clean Header Bar */}
       <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
             <Receipt className="size-6 text-emerald-600" />
-            <ShinyText text="Satış İşlemleri & Fişler" speed={6} />
+            <ShinyText text="Satışlar" speed={6} />
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            <BlurText text="Kayıtlı müşterilere, tanımlı satış türlerine ve envanter ürünlerine göre güvenle satış gerçekleştirin." delay={30} animateBy="words" />
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Fişleri arayın, fatura indirin, iade ve iptal yapın.</p>
         </div>
-        <BorderGlowButton
-          onClick={() => setModalOpen(true)}
-          glowColor="emerald"
-        >
-          <ShoppingCart className="h-4 w-4" />
-          + Yeni Satış Kaydı
-        </BorderGlowButton>
+        <Link href="/sales" className={cn(buttonVariants(), "h-10 px-4")}>
+          <ShoppingCart />
+          Kasada yeni satış
+        </Link>
       </div>
 
       <ResourcePage
-        key={refreshKey}
-        title="Satış Kayıtları"
-        description="Tamamlanan satışları, işlem türlerini, müşteri ve ödeme detaylarını inceleyin."
-        listPath="/api/v1/sales/transactions"
-        createPath="/api/v1/sales/transactions"
+        title="Satışlar"
+        description="Satış kayıtları"
+        listPath="/api/v1/sales/transactions?sort=occurredAt,desc"
         detailPath={(id) => `/api/v1/sales/transactions/${id}`}
-        hideHeader={true}
-        hideInlineForm={true}
-        fields={[]}
+        hideHeader
+        hideInlineForm
+        defaultSort={{ key: "occurredAt", direction: "desc" }}
+        labels={{ searchPlaceholder: "Fiş no veya müşteri ara", detailTitle: "Satış detayı" }}
         columns={[
-          { key: "receiptNumber", label: "Fiş No" },
+          { key: "receiptNumber", label: "Fiş no" },
+          { key: "occurredAt", label: "Tarih", format: "datetime" },
           { key: "customerName", label: "Müşteri" },
-          { key: "transactionType", label: "Satış Türü" },
-          { key: "amount", label: "Tutar (TL)" },
-          { key: "paymentMethod", label: "Ödeme Yöntemi" },
-          { key: "status", label: "Durum" },
+          { key: "amount", label: "Tutar", format: "money", align: "right" },
+          { key: "paymentMethod", label: "Ödeme", filterable: true, hideOnMobile: true },
+          { key: "status", label: "Durum", format: "badge", filterable: true, value: (item) => translateEnum(item.status) },
         ]}
-        emptyText="Henüz bir satış kaydı oluşturulmadı."
+        rowActions={(item, { reload }) => <SaleActionButtons sale={toSale(item)} onChanged={reload} compact />}
+        renderDetail={(item, loading) => <SaleDetail item={item} loading={loading} />}
+        emptyText="Henüz satış yok. Kasadan ilk satışı yaptığınızda burada görünür."
       />
+    </div>
+  );
+}
 
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-              <ShoppingCart className="h-5 w-5 text-emerald-600" />
-              Yeni Satış Kaydı Oluştur
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            {error ? (
-              <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-xs font-semibold text-red-600">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                {error}
-              </div>
-            ) : null}
-
-            {/* Transaction Type Selection */}
-            {transactionTypes.length > 0 && (
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  <Tag className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Satış / İşlem Türü Seçin *
-                </label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                  value={selectedTypeId}
-                  onChange={(e) => setSelectedTypeId(e.target.value)}
-                >
-                  {transactionTypes.map((t) => (
-                    <option key={t.id} value={t.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                      {t.name} ({t.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Registered Customer Selection */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                <UserCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Kayıtlı Müşteri Seçin
-              </label>
-              <select
-                className="flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                value={selectedCustomerId}
-                onChange={(e) => {
-                  setSelectedCustomerId(e.target.value);
-                  if (e.target.value) setQuickCustomerName("");
-                }}
-              >
-                <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">-- Kayıtlı Müşterilerden Seç (Veya Perakende) --</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                    {c.firstName} {c.lastName} {c.phone ? `(${c.phone})` : ""}
-                  </option>
-                ))}
-              </select>
-              {!selectedCustomerId && (
-                <Input
-                  placeholder="Veya Hızlı Perakende Müşteri Adı Yazın"
-                  value={quickCustomerName}
-                  onChange={(e) => setQuickCustomerName(e.target.value)}
-                  className="mt-1 text-xs border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-                />
-              )}
-            </div>
-
-            {/* Inventory Product Selection */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                <PackageCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Envanterdeki Kayıtlı Ürün *
-              </label>
-              <select
-                className="flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                value={selectedItemId}
-                onChange={(e) => handleProductSelect(e.target.value)}
-              >
-                <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">-- Envanterden Ürün Seçin --</option>
-                {inventoryItems.map((item) => (
-                  <option key={item.id} value={item.id} disabled={item.quantity <= 0} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                    {item.name} [{item.sku}] - Stok: {item.quantity} Adet {item.quantity <= 0 ? "(TÜKENDİ)" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Satış Miktarı (Adet)</label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                  className="mt-1 border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Birim Fiyat (TL)</label>
-                <Input
-                  type="number"
-                  min={0}
-                  placeholder="Örn: 250"
-                  value={unitPrice || ""}
-                  onChange={(e) => setUnitPrice(Math.max(0, Number(e.target.value) || 0))}
-                  className="mt-1 border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Ödeme Yöntemi</label>
-                <select
-                  className="mt-1 flex h-10 w-full rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                >
-                  <option value="CASH" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{translateEnum("CASH")}</option>
-                  <option value="CARD" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{translateEnum("CARD")}</option>
-                  <option value="TRANSFER" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{translateEnum("TRANSFER")}</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Hesaplanan Toplam Tutar</label>
-                <div className="mt-1 flex h-10 items-center rounded-md border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/40 px-3 text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                  {((unitPrice || 100) * quantity).toLocaleString("tr-TR", { minimumFractionDigits: 2 })} TL
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Not / Satış Açıklaması</label>
-              <Input
-                placeholder="Örn: Garanti kartı verildi, kılıf hediye edildi"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="mt-1 text-xs border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-              />
-            </div>
+function SaleDetail({ item, loading }: { item: ApiRecord; loading: boolean }) {
+  const sale = toSale(item);
+  const refunded = sale.refundedAmount ?? 0;
+  const timeline = Array.isArray(item.timeline) ? (item.timeline as ApiRecord[]) : [];
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm text-muted-foreground">{String(item.customerName ?? "Perakende müşteri")}</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{formatMoney(sale.amount)}</p>
           </div>
+          <StatusBadge value={item.status ?? "COMPLETED"} />
+        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <dt className="text-muted-foreground">Tarih</dt>
+          <dd className="text-right">{formatDateTime(item.occurredAt)}</dd>
+          <dt className="text-muted-foreground">Ödeme</dt>
+          <dd className="text-right">{translateEnum(item.paymentMethod ?? "CASH")}</dd>
+          {item.paymentReference ? (
+            <>
+              <dt className="text-muted-foreground">Ödeme referansı</dt>
+              <dd className="text-right">{String(item.paymentReference)}</dd>
+            </>
+          ) : null}
+          {refunded > 0 && (
+            <>
+              <dt className="text-muted-foreground">İade edilen</dt>
+              <dd className="text-right tabular-nums">{formatMoney(refunded)}</dd>
+              <dt className="text-muted-foreground">Kalan</dt>
+              <dd className="text-right tabular-nums">{formatMoney(refundableAmount(sale))}</dd>
+            </>
+          )}
+        </dl>
+        {item.notes ? <p className="mt-3 border-t pt-3 text-xs leading-5 text-muted-foreground">{String(item.notes)}</p> : null}
+        <a className="mt-3 inline-flex text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400" href={invoiceUrl(sale.id)} target="_blank" rel="noreferrer">
+          Faturayı indir (PDF)
+        </a>
+      </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>
-              İptal
-            </Button>
-            <Button
-              onClick={handleCreateSale}
-              disabled={saving || !selectedItemId}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-            >
-              {saving ? "Satış Yapılıyor..." : "Satışı Tamamla & Stoğu Düş"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <div>
+        <h3 className="mb-2 text-sm font-semibold">Geçmiş</h3>
+        {loading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        ) : timeline.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Kayıtlı hareket yok.</p>
+        ) : (
+          <ol className="space-y-2 border-l pl-4">
+            {timeline.map((event) => (
+              <li key={String(event.id)} className="text-sm">
+                <p className="font-medium">{TIMELINE_LABELS[String(event.eventType)] ?? String(event.eventType)}</p>
+                <p className="text-xs text-muted-foreground">{formatDateTime(event.occurredAt)}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </div>
   );
 }

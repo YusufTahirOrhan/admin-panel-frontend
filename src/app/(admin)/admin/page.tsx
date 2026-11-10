@@ -1,22 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  ArrowDownRight,
-  ArrowUpRight,
-  ShieldAlert,
-  ShoppingCart,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { AlertTriangle, PackageOpen, ShieldAlert, ShoppingCart, TrendingUp, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ApiRecord, apiGet, friendlyApiError, normalizeList } from "@/lib/management-api";
+import { buttonVariants } from "@/components/ui/button";
+import { ApiRecord, apiGet, isApiRecord, normalizeList } from "@/lib/management-api";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { ShinyText } from "@/components/ui/shiny-text";
 import { NumberTicker } from "@/components/ui/number-ticker";
-import { BlurText } from "@/components/ui/blur-text";
 import { AnalyticsCharts } from "@/components/admin/analytics-charts";
+import { SetupChecklist } from "@/components/admin/setup-checklist";
+import { auditActionLabel, auditActorName, auditDetail } from "@/lib/audit-events";
+import { formatDateTime, formatMoney } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface RevenueSummary {
   totalRevenue: number;
@@ -25,279 +22,234 @@ interface RevenueSummary {
 }
 
 interface DashboardState {
-  dailyRevenue: RevenueSummary | null;
-  monthlyRevenue: RevenueSummary | null;
-  customers: ApiRecord[];
+  daily: RevenueSummary | null;
+  monthly: RevenueSummary | null;
+  customerCount: number | null;
   lowStock: ApiRecord[];
-  highRiskEvents: ApiRecord[];
+  riskEvents: ApiRecord[];
+  usernames: Record<string, string>;
+  failed: boolean;
 }
 
-const currencyFormatter = new Intl.NumberFormat("tr-TR", {
-  style: "currency",
-  currency: "TRY",
-  maximumFractionDigits: 2,
-});
+async function loadDashboard(): Promise<DashboardState> {
+  const today = getTodayRange();
+  const month = getMonthRange();
+  const [daily, monthly, customers, lowStock, risk, users] = await Promise.allSettled([
+    apiGet<RevenueSummary>(revenuePath(today.start, today.end)),
+    apiGet<RevenueSummary>(revenuePath(month.start, month.end)),
+    apiGet<unknown>("/api/v1/sales/customers?size=1"),
+    apiGet<unknown>("/api/v1/admin/analytics/low-stock"),
+    apiGet<{ events?: ApiRecord[] }>("/api/v1/admin/analytics/high-risk-events?limit=6"),
+    apiGet<unknown>("/api/v1/admin/users"),
+  ]);
+  const value = <T,>(result: PromiseSettledResult<T>) => (result.status === "fulfilled" ? result.value : null);
+  const customerPage = value(customers);
+  return {
+    daily: value(daily),
+    monthly: value(monthly),
+    // The page's total, not the length of one page.
+    customerCount: isApiRecord(customerPage) && typeof customerPage.totalElements === "number" ? customerPage.totalElements : customerPage ? normalizeList(customerPage).length : null,
+    lowStock: normalizeList(value(lowStock)),
+    riskEvents: Array.isArray(value(risk)?.events) ? (value(risk)?.events ?? []) : [],
+    usernames: Object.fromEntries(normalizeList(value(users)).map((user) => [String(user.id), String(user.username ?? "")])),
+    failed: [daily, monthly, customers, lowStock, risk].some((result) => result.status === "rejected"),
+  };
+}
 
 export default function AdminDashboardPage() {
-  const [data, setData] = useState<DashboardState>({
-    dailyRevenue: null,
-    monthlyRevenue: null,
-    customers: [],
-    lowStock: [],
-    highRiskEvents: [],
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardState | null>(null);
 
   useEffect(() => {
     let active = true;
-
-    async function loadDashboard() {
-      setLoading(true);
-      setError(null);
-      try {
-        const today = getTodayRange();
-        const month = getMonthRange();
-        const [dailyRevenue, monthlyRevenue, customers, lowStock, highRisk] = await Promise.all([
-          apiGet<RevenueSummary>(revenuePath(today.start, today.end)),
-          apiGet<RevenueSummary>(revenuePath(month.start, month.end)),
-          apiGet<unknown>("/api/v1/sales/customers?size=200"),
-          apiGet<unknown>("/api/v1/admin/analytics/low-stock"),
-          apiGet<{ events?: ApiRecord[] }>("/api/v1/admin/analytics/high-risk-events?limit=5"),
-        ]);
-
-        if (!active) {
-          return;
-        }
-
-        setData({
-          dailyRevenue,
-          monthlyRevenue,
-          customers: normalizeList(customers),
-          lowStock: normalizeList(lowStock),
-          highRiskEvents: Array.isArray(highRisk.events) ? highRisk.events : [],
-        });
-      } catch (exception) {
-        if (active) {
-          setError(friendlyApiError(exception, "Dashboard verileri alınamadı."));
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadDashboard();
-
+    loadDashboard().then((next) => {
+      if (active) setData(next);
+    });
     return () => {
       active = false;
     };
   }, []);
 
-  const kpiCards = useMemo(
-    () => [
-      {
-        id: "daily-sales",
-        label: "Günlük Satış",
-        numericValue: data.dailyRevenue?.totalRevenue ?? 0,
-        formattedValue: currencyFormatter.format(data.dailyRevenue?.totalRevenue ?? 0),
-        change: `${data.dailyRevenue?.transactionCount ?? 0} işlem`,
-        trend: "up" as const,
-        icon: ShoppingCart,
-        accent: "bg-emerald-500",
-        spotlight: "rgba(16, 185, 129, 0.15)",
-        iconBg: "bg-emerald-500/10",
-        iconColor: "text-emerald-600",
-      },
-      {
-        id: "monthly-revenue",
-        label: "Aylık Gelir",
-        numericValue: data.monthlyRevenue?.totalRevenue ?? 0,
-        formattedValue: currencyFormatter.format(data.monthlyRevenue?.totalRevenue ?? 0),
-        change: `Ort. ${currencyFormatter.format(data.monthlyRevenue?.avgTransactionValue ?? 0)}`,
-        trend: "up" as const,
-        icon: TrendingUp,
-        accent: "bg-amber-500",
-        spotlight: "rgba(245, 158, 11, 0.15)",
-        iconBg: "bg-amber-500/10",
-        iconColor: "text-amber-600",
-      },
-      {
-        id: "active-customers",
-        label: "Müşteri Kaydı",
-        numericValue: data.customers.length,
-        formattedValue: String(data.customers.length),
-        change: "aktif müşteri",
-        trend: "up" as const,
-        icon: Users,
-        accent: "bg-sky-500",
-        spotlight: "rgba(14, 165, 233, 0.15)",
-        iconBg: "bg-sky-500/10",
-        iconColor: "text-sky-600",
-      },
-      {
-        id: "low-stock",
-        label: "Düşük Stok Uyarısı",
-        numericValue: data.lowStock.length,
-        formattedValue: String(data.lowStock.length),
-        change: "kritik ürün",
-        trend: data.lowStock.length > 0 ? ("down" as const) : ("up" as const),
-        icon: AlertTriangle,
-        accent: "bg-red-500",
-        spotlight: "rgba(239, 68, 68, 0.15)",
-        iconBg: "bg-red-500/10",
-        iconColor: "text-red-600",
-      },
-    ],
-    [data],
-  );
+  const loading = data === null;
+  const lowStock = data?.lowStock ?? [];
+
+  const kpiCards = [
+    {
+      id: "daily-sales",
+      label: "Bugünkü satış",
+      value: formatMoney(data?.daily?.totalRevenue ?? 0),
+      sub: `${data?.daily?.transactionCount ?? 0} satış`,
+      icon: ShoppingCart,
+      spotlight: "rgba(16, 185, 129, 0.15)",
+      iconBg: "bg-emerald-500/10",
+      iconColor: "text-emerald-600",
+    },
+    {
+      id: "monthly-revenue",
+      label: "Bu ayki ciro",
+      value: formatMoney(data?.monthly?.totalRevenue ?? 0),
+      sub: `${data?.monthly?.transactionCount ?? 0} satış, ortalama ${formatMoney(data?.monthly?.avgTransactionValue ?? 0)}`,
+      icon: TrendingUp,
+      spotlight: "rgba(245, 158, 11, 0.15)",
+      iconBg: "bg-amber-500/10",
+      iconColor: "text-amber-600",
+    },
+    {
+      id: "customers",
+      label: "Müşteri",
+      count: data?.customerCount ?? 0,
+      sub: "kayıtlı müşteri",
+      icon: Users,
+      spotlight: "rgba(14, 165, 233, 0.15)",
+      iconBg: "bg-sky-500/10",
+      iconColor: "text-sky-600",
+    },
+    {
+      id: "low-stock",
+      label: "Az kalan ürün",
+      count: lowStock.length,
+      sub: lowStock.length > 0 ? "uyarı eşiğinde veya altında" : "stoklar yeterli",
+      icon: AlertTriangle,
+      spotlight: "rgba(239, 68, 68, 0.15)",
+      iconBg: lowStock.length > 0 ? "bg-red-500/10" : "bg-muted",
+      iconColor: lowStock.length > 0 ? "text-red-600" : "text-muted-foreground",
+    },
+  ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <ShinyText text="Gösterge Paneli" speed={6} />
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          <BlurText
-            text="OptiMaxx Mağaza performansınıza canlı istatistiklerle genel bakış."
-            delay={30}
-            animateBy="words"
-          />
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
+            <ShinyText text="Gösterge Paneli" speed={6} />
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Bugünün satışları, azalan stoklar ve dikkat isteyen işlemler.</p>
+        </div>
+        <Link href="/sales" className={cn(buttonVariants(), "h-10 self-start px-4 sm:self-auto")}>
+          <ShoppingCart />
+          Kasayı aç
+        </Link>
       </div>
 
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
+      <SetupChecklist />
+
+      {data?.failed && (
+        <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          Bazı veriler yüklenemedi; gösterilen rakamlar eksik olabilir. Sayfayı yenileyin.
+        </p>
       )}
 
-      {/* KPI Cards Grid with Spotlight */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpiCards.map((card) => {
           const Icon = card.icon;
-          const TrendIcon = card.trend === "up" ? ArrowUpRight : ArrowDownRight;
-
           return (
-            <SpotlightCard
-              key={card.id}
-              id={`kpi-${card.id}`}
-              spotlightColor={card.spotlight}
-              className="p-5"
-            >
+            <SpotlightCard key={card.id} id={`kpi-${card.id}`} spotlightColor={card.spotlight} className="p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
                   {loading ? (
                     <Skeleton className="h-8 w-32" />
-                  ) : card.id === "active-customers" || card.id === "low-stock" ? (
-                    <div className="truncate text-2xl font-bold tracking-tight text-foreground">
-                      <NumberTicker value={card.numericValue} />
+                  ) : card.count !== undefined ? (
+                    <div className="truncate text-2xl font-bold tracking-tight text-foreground tabular-nums">
+                      <NumberTicker value={card.count} />
                     </div>
                   ) : (
-                    <p className="truncate text-2xl font-bold tracking-tight text-foreground">
-                      {card.formattedValue}
-                    </p>
+                    <p className="truncate text-2xl font-bold tracking-tight text-foreground tabular-nums">{card.value}</p>
                   )}
                 </div>
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${card.iconBg}`}>
                   <Icon className={`h-5 w-5 ${card.iconColor}`} />
                 </div>
               </div>
-              <div className="mt-3 flex items-center gap-1.5">
-                <TrendIcon className={card.trend === "up" ? "h-3.5 w-3.5 text-emerald-500" : "h-3.5 w-3.5 text-red-500"} />
-                {loading ? (
-                  <Skeleton className="h-4 w-20" />
-                ) : (
-                  <span className="text-xs font-semibold text-muted-foreground">{card.change}</span>
-                )}
-              </div>
+              <div className="mt-3 min-h-4">{loading ? <Skeleton className="h-4 w-24" /> : <p className="text-xs font-medium text-muted-foreground">{card.sub}</p>}</div>
             </SpotlightCard>
           );
         })}
       </div>
 
-      {/* Visual Analytics Charts (Recharts Area & Donut Charts) */}
       <AnalyticsCharts />
 
       <div className="grid gap-4 lg:grid-cols-7">
-        <SpotlightCard className="lg:col-span-4 p-6" spotlightColor="rgba(16, 185, 129, 0.08)">
-          <h2 className="mb-4 text-base font-semibold text-foreground">Gelir Özeti</h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <SummaryTile
-              label="Bugünkü İşlem"
-              numericValue={data.dailyRevenue?.transactionCount ?? 0}
-              loading={loading}
-            />
-            <SummaryTile
-              label="Aylık İşlem"
-              numericValue={data.monthlyRevenue?.transactionCount ?? 0}
-              loading={loading}
-            />
-            <SummaryTile
-              label="Ortalama Sepet"
-              value={currencyFormatter.format(data.monthlyRevenue?.avgTransactionValue ?? 0)}
-              loading={loading}
-            />
+        <SpotlightCard className="p-5 lg:col-span-4 sm:p-6" spotlightColor="rgba(239, 68, 68, 0.06)">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <PackageOpen aria-hidden="true" className="size-4 text-red-500" />
+              Az kalan ürünler
+            </h2>
+            <Link href="/admin/inventory" className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400">
+              Envantere git
+            </Link>
           </div>
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-11 w-full" />
+              ))}
+            </div>
+          ) : lowStock.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Uyarı eşiğine inen ürün yok.</p>
+          ) : (
+            <ul className="divide-y">
+              {lowStock.slice(0, 6).map((item) => {
+                const quantity = Number(item.quantity ?? 0);
+                return (
+                  <li key={String(item.id)} className="flex items-center justify-between gap-3 py-2.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{String(item.name ?? item.sku ?? "Ürün")}</p>
+                      <p className="truncate text-xs text-muted-foreground">{String(item.sku ?? "")}</p>
+                    </div>
+                    <p className="shrink-0 text-right text-sm tabular-nums">
+                      <span className={cn("font-semibold", quantity <= 0 ? "text-red-600 dark:text-red-400" : "text-amber-700 dark:text-amber-400")}>{quantity <= 0 ? "Tükendi" : `${quantity} adet`}</span>
+                      <span className="block text-xs text-muted-foreground">eşik {Number(item.minQuantity ?? 0)}</span>
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {lowStock.length > 6 && <p className="mt-2 text-xs text-muted-foreground">ve {lowStock.length - 6} ürün daha</p>}
         </SpotlightCard>
 
-        <SpotlightCard className="lg:col-span-3 p-6" spotlightColor="rgba(239, 68, 68, 0.08)">
-          <div className="mb-4 flex items-center gap-2">
-            <ShieldAlert className="size-4 text-red-500" />
-            <h2 className="text-base font-semibold text-foreground">Riskli Aktiviteler</h2>
+        <SpotlightCard className="p-5 lg:col-span-3 sm:p-6" spotlightColor="rgba(239, 68, 68, 0.08)">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <ShieldAlert aria-hidden="true" className="size-4 text-red-500" />
+              Dikkat isteyen işlemler
+            </h2>
+            <Link href="/admin/audits" className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400">
+              Tüm kayıtlar
+            </Link>
           </div>
-          <div className="space-y-3">
-            {loading ? (
-              Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-10 w-full" />)
-            ) : data.highRiskEvents.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Riskli denetim olayı bulunmuyor.
-              </p>
-            ) : (
-              data.highRiskEvents.map((activity, index) => (
-                <div key={String(activity.id ?? index)} className="rounded-lg bg-muted/40 p-3 border border-border/40">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {String(activity.eventType ?? "Olay")}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">
-                    {String(activity.resourceType ?? "Kaynak")} · {String(activity.occurredAt ?? "")}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
+          <p className="mb-4 text-xs text-muted-foreground">İptal, iade, silme, rol değişikliği, stok sayımı ve engellenen girişler.</p>
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : (data?.riskEvents.length ?? 0) === 0 ? (
+            <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Son zamanlarda dikkat isteyen bir işlem yok.</p>
+          ) : (
+            <ul className="space-y-2">
+              {data?.riskEvents.map((event, index) => {
+                const detail = auditDetail(event);
+                const actor = auditActorName(event, data.usernames);
+                return (
+                  <li key={String(event.id ?? index)} className="rounded-lg border border-border/40 bg-muted/40 p-3">
+                    <p className="text-sm font-medium text-foreground">
+                      {auditActionLabel(event)}
+                      {detail && <span className="font-normal text-muted-foreground">: {detail}</span>}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {actor ? `${actor}, ` : ""}
+                      {formatDateTime(event.occurredAt)}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </SpotlightCard>
       </div>
-    </div>
-  );
-}
-
-function SummaryTile({
-  label,
-  value,
-  numericValue,
-  loading,
-}: {
-  label: string;
-  value?: string;
-  numericValue?: number;
-  loading: boolean;
-}) {
-  return (
-    <div className="rounded-lg border border-border/60 bg-muted/30 p-4 transition-colors hover:bg-muted/50">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      {loading ? (
-        <Skeleton className="mt-2 h-7 w-24" />
-      ) : numericValue !== undefined ? (
-        <p className="mt-2 text-xl font-bold tracking-tight">
-          <NumberTicker value={numericValue} />
-        </p>
-      ) : (
-        <p className="mt-2 text-xl font-bold tracking-tight">{value}</p>
-      )}
     </div>
   );
 }
