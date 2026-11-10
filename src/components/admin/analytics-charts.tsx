@@ -15,10 +15,16 @@ import {
   Legend,
 } from "recharts";
 import { TrendingUp, PieChart as PieIcon, Sparkles, ShoppingBag } from "lucide-react";
-import { apiGet, normalizeList } from "@/lib/management-api";
+import { apiGet, normalizeList, translateEnum } from "@/lib/management-api";
 
+// Fields returned by GET /api/v1/sales/transactions (SaleTransactionResponse); the older
+// names below are kept as fallbacks.
 interface Transaction {
   id: string;
+  amount?: number;
+  occurredAt?: string;
+  transactionTypeCode?: string;
+  status?: string;
   totalAmount?: number;
   quantity?: number;
   transactionDate?: string;
@@ -85,9 +91,10 @@ export function AnalyticsCharts() {
   const categoryMap = new Map<string, number>();
 
   transactions.forEach((tx) => {
-    const dateStr = tx.transactionDate || tx.createdDate;
-    const amount = Number(tx.totalAmount) || 0;
-    const cat = tx.itemCategory || tx.category || tx.type?.name || "Diğer";
+    if (tx.status === "CANCELED") return;
+    const dateStr = tx.occurredAt || tx.transactionDate || tx.createdDate;
+    const amount = Number(tx.amount ?? tx.totalAmount) || 0;
+    const cat = (tx.transactionTypeCode && translateEnum(tx.transactionTypeCode)) || tx.itemCategory || tx.category || tx.type?.name || "Diğer";
 
     categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
 

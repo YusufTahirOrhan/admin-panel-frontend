@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ApiRecord, apiGet, apiPatch, apiPost, normalizeList } from "@/lib/management-api";
+import { ApiRecord, apiGet, apiPatch, apiPost, normalizeList, translateEnum } from "@/lib/management-api";
 
 type DiscountMode = "PERCENT" | "FIXED";
 type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
@@ -432,7 +432,7 @@ export function PosPage() {
                     <div className="min-w-0">
                       <p className="font-medium">{sale.receiptNumber || sale.id}</p>
                       <p className="text-sm text-muted-foreground">
-                        {sale.customerName || "Perakende müşteri"} · {sale.paymentMethod || "CASH"} · {sale.status || "COMPLETED"}
+                        {sale.customerName || "Perakende müşteri"} · {translateEnum(sale.paymentMethod || "CASH")} · {translateEnum(sale.status || "COMPLETED")}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
