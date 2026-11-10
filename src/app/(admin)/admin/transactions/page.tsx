@@ -213,7 +213,7 @@ export default function AdminTransactionsPage() {
         columns={[
           { key: "receiptNumber", label: "Fiş No" },
           { key: "customerName", label: "Müşteri" },
-          { key: "transactionType", label: "Satış Türü" },
+          { key: "transactionTypeCode", label: "Satış Türü" },
           { key: "amount", label: "Tutar (TL)" },
           { key: "paymentMethod", label: "Ödeme Yöntemi" },
           { key: "status", label: "Durum" },
