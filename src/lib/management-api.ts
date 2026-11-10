@@ -1,5 +1,8 @@
+import type { ReactNode } from "react";
 import { api } from "@/lib/axios";
 import { AxiosError } from "axios";
+import { translateApiMessage } from "@/lib/api-messages";
+import { isIsoDateTime, formatDateTime } from "@/lib/format";
 
 export type ApiRecord = Record<string, unknown>;
 
@@ -17,6 +20,14 @@ export interface SitePage {
   blocks: PageBlock[];
 }
 
+export interface ResourceFieldContext {
+  value: unknown;
+  setValue: (value: unknown) => void;
+  form: ApiRecord;
+  editing: boolean;
+  id: string;
+}
+
 export interface ResourceField {
   name: string;
   label: string;
@@ -25,6 +36,27 @@ export interface ResourceField {
   options?: string[];
   optionLabels?: Record<string, string>;
   required?: boolean;
+  /** Short help text under the input. */
+  help?: string;
+  /** Fields sharing a group are shown together under that heading (e.g. "Sağ göz"). */
+  group?: string;
+  /** Not shown when editing an existing record (e.g. initial stock, password). */
+  hideOnEdit?: boolean;
+  /** Not shown when creating. */
+  hideOnCreate?: boolean;
+  /** Takes the full row width. */
+  wide?: boolean;
+  inputMode?: "text" | "decimal" | "numeric" | "tel" | "email";
+  min?: number;
+  max?: number;
+  step?: number | "any";
+  autoComplete?: string;
+  /** Returns an error message, or null when the value is fine. */
+  validate?: (value: unknown, form: ApiRecord) => string | null;
+  /** Converts the input before it is sent to the API. */
+  normalize?: (value: unknown) => unknown;
+  /** Custom input (e.g. a customer picker). */
+  render?: (context: ResourceFieldContext) => ReactNode;
 }
 
 export interface PageMeta {
@@ -110,6 +142,7 @@ export const ENUM_TRANSLATIONS: Record<string, string> = {
   PENDING: "Beklemede",
   CANCELLED: "İptal Edildi",
   CANCELED: "İptal Edildi",
+  REFUNDED: "İade Edildi",
   RECEIVED: "Teslim Alındı",
   IN_PROGRESS: "İşlemde",
   READY_FOR_PICKUP: "Teslime Hazır",
@@ -121,7 +154,8 @@ export const ENUM_TRANSLATIONS: Record<string, string> = {
   // İşlem Kategori Türleri
   SALE: "Satış İşlemi",
   REPAIR: "Tamir / Servis",
-  PRESCRIPTION: "Reçeteli Satış",
+  PRESCRIPTION: "Reçete",
+  SERVICE: "Hizmet",
   OTHER: "Diğer İşlem",
 
   // İşlem Türü Kodları
@@ -132,7 +166,7 @@ export const ENUM_TRANSLATIONS: Record<string, string> = {
   SPECIAL_ORDER: "Özel Sipariş",
 
   // Kullanıcı Rolleri
-  OWNER: "İşletme Sahibi",
+  OWNER: "Mağaza Sahibi",
   ADMIN: "Yönetici",
   STAFF: "Personel",
 };
@@ -154,6 +188,7 @@ export function fieldValue(record: ApiRecord, keys: string[]): string {
         if (typeof obj.title === "string" && obj.title.trim()) return obj.title;
         if (typeof obj.label === "string" && obj.label.trim()) return obj.label;
       }
+      if (isIsoDateTime(value)) return formatDateTime(value);
       return translateEnum(value);
     }
   }
@@ -192,6 +227,8 @@ export function friendlyApiError(exception: unknown, fallback: string): string {
 }
 
 function translateKnownError(message: string): string {
+  const known = translateApiMessage(message);
+  if (known) return known;
   const normalized = message.toLowerCase();
 
   if (normalized.includes("network error")) {

@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2, LogIn, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth-schemas';
 import { authService } from '@/lib/auth-service';
+import { translateApiMessage } from '@/lib/api-messages';
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
@@ -68,14 +69,14 @@ export default function LoginForm() {
           ? error.message
           : 'Bir hata oluştu. Lütfen tekrar deneyin.';
 
-      if (
-        message.toLowerCase().includes('invalid') ||
-        message.toLowerCase().includes('unauthorized') ||
-        message.toLowerCase().includes('bad credentials')
-      ) {
-        setServerError('E-posta adresi veya şifre hatalı.');
+      const lower = message.toLowerCase();
+      const translated = translateApiMessage(message);
+      if (translated) {
+        setServerError(translated);
+      } else if (lower.includes('invalid') || lower.includes('unauthorized') || lower.includes('bad credentials')) {
+        setServerError('Kullanıcı adı, e-posta veya şifre hatalı.');
       } else {
-        setServerError('Bağlantı hatası. Lütfen daha sonra tekrar deneyin.');
+        setServerError('Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip yeniden deneyin.');
       }
     }
   };
@@ -137,12 +138,15 @@ export default function LoginForm() {
             htmlFor="login-email"
             className="block text-sm font-medium text-slate-300"
           >
-            E-posta Adresi
+            E-posta veya kullanıcı adı
           </label>
           <input
             id="login-email"
-            type="email"
-            autoComplete="email"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             placeholder="ornek@optimaxx.com"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
@@ -173,7 +177,7 @@ export default function LoginForm() {
               }}
               className="text-xs font-medium text-teal-400 hover:text-teal-300 hover:underline transition-colors cursor-pointer"
             >
-              Şifremi Unuttum?
+              Şifremi unuttum
             </button>
           </div>
           <div className="relative">

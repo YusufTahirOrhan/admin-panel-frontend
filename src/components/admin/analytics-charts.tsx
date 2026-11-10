@@ -60,13 +60,19 @@ function CustomTooltip({ active, payload, label }: any) {
 export function AnalyticsCharts() {
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  // Sales carry the type's code ("PERAKENDE_SATIS"); the chart shows the name the store gave it.
+  const [typeNames, setTypeNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       try {
-        const res = await apiGet<any>("/api/v1/sales/transactions?size=200");
+        const [res, types] = await Promise.all([
+          apiGet<unknown>("/api/v1/sales/transactions?size=200"),
+          apiGet<unknown>("/api/v1/admin/transaction-types").catch(() => []),
+        ]);
         const list = normalizeList(res) as unknown as Transaction[];
+        setTypeNames(Object.fromEntries(normalizeList(types).map((type) => [String(type.code), String(type.name ?? type.code)])));
         setTransactions(list);
       } catch {
         setTransactions([]);
@@ -94,7 +100,7 @@ export function AnalyticsCharts() {
     if (tx.status === "CANCELED") return;
     const dateStr = tx.occurredAt || tx.transactionDate || tx.createdDate;
     const amount = Number(tx.amount ?? tx.totalAmount) || 0;
-    const cat = (tx.transactionTypeCode && translateEnum(tx.transactionTypeCode)) || tx.itemCategory || tx.category || tx.type?.name || "Diğer";
+    const cat = (tx.transactionTypeCode && (typeNames[tx.transactionTypeCode] ?? translateEnum(tx.transactionTypeCode))) || tx.itemCategory || tx.category || tx.type?.name || "Diğer";
 
     categoryMap.set(cat, (categoryMap.get(cat) || 0) + 1);
 
