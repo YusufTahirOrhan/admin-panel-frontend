@@ -2,10 +2,11 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/auth-store';
 import { authService } from './auth-service';
 import { installAuthRefreshInterceptor } from './auth-interceptors';
+import { API_BASE } from './api-base';
 
 export const api = axios.create({
   timeout: 15000,
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },

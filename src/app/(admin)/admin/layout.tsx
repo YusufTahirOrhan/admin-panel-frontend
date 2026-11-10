@@ -2,6 +2,7 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DotPatternBackground } from "@/components/ui/dot-pattern-background";
+import { PanelGuard } from "@/components/auth/panel-guard";
 
 export default function AdminLayout({
   children,
@@ -9,6 +10,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
+    <PanelGuard area="admin">
     <SidebarProvider>
       {/* ── Sidebar ── */}
       <AdminSidebar />
@@ -21,5 +23,6 @@ export default function AdminLayout({
         </DotPatternBackground>
       </SidebarInset>
     </SidebarProvider>
+    </PanelGuard>
   );
 }

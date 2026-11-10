@@ -2,8 +2,10 @@ import { useAuthStore } from '@/stores/auth-store';
 import type { LoginFormData } from '@/lib/validations/auth-schemas';
 import type { User } from '@/stores/auth-store';
 import { api } from '@/lib/axios';
+import { apiUrl } from '@/lib/api-base';
 
-const PROXY_URL = '/api/auth';
+// Cookie-based auth endpoints (served by the PHP backend; formerly Next.js route handlers).
+const PROXY_URL = apiUrl('/api/auth');
 
 interface LoginResponse {
   accessToken: string;
@@ -18,6 +20,7 @@ export const authService = {
   login: async (credentials: LoginFormData): Promise<LoginResponse> => {
     const res = await fetch(`${PROXY_URL}/login`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
     });
@@ -38,6 +41,7 @@ export const authService = {
   refresh: async (): Promise<string> => {
     const res = await fetch(`${PROXY_URL}/refresh`, {
       method: 'POST',
+      credentials: 'include',
     });
 
     if (!res.ok) {
@@ -51,6 +55,7 @@ export const authService = {
   logout: async () => {
     await fetch(`${PROXY_URL}/logout`, {
       method: 'POST',
+      credentials: 'include',
     });
 
     useAuthStore.getState().logout();
