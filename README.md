@@ -4,18 +4,20 @@ Next.js frontend for the OptiMaxx public website, admin panel, and sales/POS scr
 
 ## Local Development
 
+This branch builds a **static export** for cheap shared hosting. The API is the PHP backend in
+`spring-boot-admin-panel-project/php-backend` (branch `feature/php-backend`), served from the same domain.
+
 ```bash
+# terminal 1: PHP API on :8080 (needs a MySQL/MariaDB database, see php-backend/.env.example)
+cd ../spring-boot-admin-panel-project/php-backend
+php -S localhost:8080 -t public bin/dev-router.php
+
+# terminal 2: Next.js dev server on :3000, proxies /api/* to :8080
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`.
-
-The frontend expects the backend at `http://localhost:8080` by default. Override it with:
-
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080
-```
+Use `BACKEND_DEV_URL` if the API runs elsewhere.
 
 ## Quality Checks
 
@@ -38,23 +40,29 @@ See `docs/review/REVIEW.md` for the UI review, verification results, screenshots
 - Sales routes exist for POS, repairs, prescriptions, and customers.
 - Auth proxy routes keep refresh tokens in HttpOnly cookies.
 
-## Deploy Notes
-
-Required environment variable:
+## Deploy (shared hosting)
 
 ```bash
-NEXT_PUBLIC_API_URL=https://api.optimaxx.com.tr
+npm run build          # writes the static site to out/
 ```
 
-Optional panel subdomain variables:
+Copy everything inside `out/` into the PHP backend's `public/` folder (next to `index.php` and
+`.htaccess`) and upload. `.htaccess` sends `/api/*` to PHP and maps `/admin/users` to
+`admin/users.html`. See `php-backend/DEPLOY.md` for the full cPanel guide.
+
+Optional build-time variables:
 
 ```bash
-PANEL_ORIGIN=https://panel.optimaxx.com.tr
-PANEL_HOSTNAMES=panel.optimaxx.com.tr
+NEXT_PUBLIC_API_URL=https://api.example.com     # only if the API is on another domain (default: same domain)
+NEXT_PUBLIC_PANEL_ORIGIN=https://panel.optimaxx.com.tr   # only if the panel has its own subdomain
+NEXT_PUBLIC_PANEL_HOSTNAMES=panel.optimaxx.com.tr
 ```
 
-The public website should not expose login, admin, panel, or randevu/appointment links. Requests to `/login`, `/admin`, or `/sales` on the public host redirect to `PANEL_ORIGIN` when configured. Localhost keeps the standard local development flow.
+What changed for the static export:
 
-When deploying the Docker image to Heroku, the runtime binds to Heroku's `$PORT`. Cloudinary-hosted CMS images from `https://res.cloudinary.com/**` are allowed by `next.config.ts`.
-
-The final hosting target can be Vercel, a Node container, or another Next.js-compatible runtime. Choose the public URL after the domain is purchased.
+- The Next.js route handlers (`/api/auth/*`, the invoice proxy) and `proxy.ts` need a Node server;
+  the PHP backend now serves the same `/api/auth/*` endpoints with the same HttpOnly cookies, and
+  page guards run in the browser (`components/auth/panel-guard.tsx`). The API still checks every permission.
+- The public homepage fetches its published CMS blocks in the browser instead of on the server.
+- Inter is bundled from `@fontsource-variable/inter` (offline builds, Turkish glyphs, no Google request).
+- The Dockerfile/Heroku flow (`next start`) still lives on `main`; it does not apply to this branch.

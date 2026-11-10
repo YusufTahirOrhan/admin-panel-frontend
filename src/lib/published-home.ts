@@ -1,5 +1,7 @@
-import { cache } from 'react';
 import { fetchPublicHome } from './public-content';
+import { API_BASE } from './api-base';
 
-// Share one CMS read between the layout's theme and the page's content.
-export const getPublishedHome = cache(() => fetchPublicHome(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'));
+/** Reads the published CMS homepage from the API (in the browser; the site is a static export). */
+export function getPublishedHome() {
+  return fetchPublicHome(API_BASE);
+}

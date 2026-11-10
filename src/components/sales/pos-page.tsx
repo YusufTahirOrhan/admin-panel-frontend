@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { apiUrl } from "@/lib/api-base";
 import {
   AlertCircle,
   CheckCircle2,
@@ -436,7 +437,7 @@ export function PosPage() {
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-semibold">{money(sale.amount ?? 0)}</span>
-                      <Button type="button" variant="outline" size="sm" onClick={() => window.open(`/api/v1/sales/transactions/${sale.id}/invoice`, "_blank", "noopener,noreferrer")}>
+                      <Button type="button" variant="outline" size="sm" onClick={() => window.open(apiUrl(`/api/v1/sales/transactions/${sale.id}/invoice`), "_blank", "noopener,noreferrer")}>
                         <Download />
                         Fatura
                       </Button>
@@ -480,7 +481,7 @@ export function PosPage() {
           {lastSale && (
             <div className="rounded-lg border bg-muted/30 p-3 text-sm">
               <p className="font-medium">Fiş: {lastSale.receiptNumber || lastSale.id}</p>
-              <a className="mt-2 inline-flex items-center gap-1 text-teal-700 hover:underline" href={`/api/v1/sales/transactions/${lastSale.id}/invoice`} target="_blank" rel="noreferrer">
+              <a className="mt-2 inline-flex items-center gap-1 text-teal-700 hover:underline" href={apiUrl(`/api/v1/sales/transactions/${lastSale.id}/invoice`)} target="_blank" rel="noreferrer">
                 <Download className="h-4 w-4" />
                 Fatura indir
               </a>
