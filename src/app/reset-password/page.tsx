@@ -24,8 +24,8 @@ function ResetPasswordForm() {
       setError("Geçersiz veya süresi dolmuş sıfırlama bağlantısı.");
       return;
     }
-    if (newPassword.length < 6) {
-      setError("Şifreniz en az 6 karakter olmalıdır.");
+    if (newPassword.length < 8) {
+      setError("Şifreniz en az 8 karakter olmalıdır.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -102,7 +102,7 @@ function ResetPasswordForm() {
                 <input
                   type={isPasswordVisible ? "text" : "password"}
                   required
-                  placeholder="En az 6 karakter"
+                  placeholder="En az 8 karakter"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className={cn(inputBaseClass, "pr-12")}
